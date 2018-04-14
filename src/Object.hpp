@@ -11,9 +11,10 @@
 #include <stdio.h>
 #include "Vector.hpp"
 
-#endif /* Object_hpp */
-
 class Object
 {
-
+public:
+    //virtual printInfo() = 0;
 };
+
+#endif /* Object_hpp */

@@ -8,6 +8,7 @@
 #include "Sphere.hpp"
 #include "Plane.hpp"
 #include "Vector.hpp"
+#include "Scene.hpp"
 
 class Parse
 {
@@ -18,11 +19,11 @@ public:
     
     static vec3 parseVector(std::stringstream & Stream);
     
-    static void parseFile(std::stringstream & Stream);
+    static void parseFile(std::stringstream & Stream, Scene & scene);
     
-    static void parseCam(std::stringstream & Stream);
+    static Camera * parseCam(std::stringstream & Stream);
     
-    //static Camera * parseCam(std::stringstream & Stream);
+    static  void parseLight(std::stringstream & Stream);
     
     //static Light * parseLight(std::stringstream & Stream);
     

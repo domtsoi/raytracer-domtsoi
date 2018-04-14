@@ -9,6 +9,7 @@
 #include "LightSource.hpp"
 #include "Plane.hpp"
 #include "Sphere.hpp"
+#include "Scene.hpp"
 using namespace std;
 //Global Variables
 Camera * camera;
@@ -45,6 +46,7 @@ int main(int argc, char **argv)
     int wWidth;
     int wHeight;
     int mode;
+    Scene scene;
     //Check to see if command line args are correct
     if (argc != 5)
     {
@@ -57,6 +59,7 @@ int main(int argc, char **argv)
     ss = getString(argv[2]);
     wWidth =  atoi(argv[3]);
     wHeight = atoi(argv[4]);
-    Parse::parseFile(ss);
+    Parse::parseFile(ss, scene);
     cout << "Made it to the end!" << endl;
+    return 0;
 }
