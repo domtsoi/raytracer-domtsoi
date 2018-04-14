@@ -14,7 +14,7 @@ vec3 Parse::parseVector(std::stringstream & Stream)
     Stream.ignore(numeric_limits<streamsize>::max(), '>');
     
     string line = buf.str(); // be careful...
-    cout << "light parse vec line" << line << endl;
+    cout << "Sphere parse vec line" << line << endl;
     int read = sscanf(line.c_str(), "%f, %f, %f", &v.x, &v.y, &v.z);
     
     if (read != 3)
@@ -96,9 +96,14 @@ Camera * Parse::parseCam(std::stringstream & s)
 void Parse::parseLight(std::stringstream & s)
 {
     Light * light = new Light();
-    string temp;
-    cout << "parsing light" << endl;
     s.ignore(numeric_limits<streamsize>::max(), '{');
     light->loc = parseVector(s);
     light->color = parseVector(s);
+}
+
+void Parse::parseSphere(std::stringstream & s)
+{
+    Sphere * sphere = new Sphere();
+    s.ignore(numeric_limits<streamsize>::max(), '{');
+    
 }

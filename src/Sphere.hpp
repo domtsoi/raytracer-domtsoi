@@ -14,8 +14,11 @@
 class Sphere
 {
 public:
-    vec3 normal;
+    vec3 center;
+    int radius;
     vec3 color;
+    float ambient;
+    float diffuse;
 };
 
 #endif /* Sphere_hpp */

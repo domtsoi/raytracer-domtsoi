@@ -25,6 +25,8 @@ public:
     
     static  void parseLight(std::stringstream & Stream);
     
+    static void parseSphere(std::stringstream & Stream);
+    
     //static Light * parseLight(std::stringstream & Stream);
     
     //static Sphere * parseSphere(std::stringstream & Stream);
