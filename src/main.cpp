@@ -113,6 +113,16 @@ void printLights(std::vector<Light *> lights)
     
 }
 
+void printObjects(std::vector<Object *> objects)
+{
+    cout << objects.size() << " object(s)\n" << endl;
+    for (int i = 0; i < objects.size(); i++)
+    {
+        cout << "Object[" << i << "]:" << endl;
+        objects[i]->printInfo();
+    }
+}
+
 void printScene(string file, Scene scene)
 {
     cout << "> raytrace sceneinfo " << file << endl;
@@ -120,6 +130,7 @@ void printScene(string file, Scene scene)
     printBreak();
     printLights(scene.lights);
     printBreak();
+    printObjects(scene.objects);
 }
 
 int main(int argc, char *argv[])
@@ -149,6 +160,7 @@ int main(int argc, char *argv[])
     {
         ss = getString(argv[2]);
         Parse::parseFile(ss, scene);
+        printScene(argv[2], scene);
         
     }
     if (mode == PIXELRAY)
