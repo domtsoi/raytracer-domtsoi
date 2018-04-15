@@ -10,12 +10,17 @@
 
 #include <stdio.h>
 #include "Vector.hpp"
+#include "Material.hpp"
+#include "Object.hpp"
 
-class Plane
+class Plane:public Object
 {
 public:
     vec3 normal;
+    float distance;
     vec3 color;
+    Material * material;
+    void printInfo();
 };
 
 #endif /* Plane_hpp */

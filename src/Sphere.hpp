@@ -10,15 +10,18 @@
 
 #include <stdio.h>
 #include "Vector.hpp"
+#include "Material.hpp"
+#include "Object.hpp"
 
-class Sphere
+class Sphere:public Object
 {
 public:
     vec3 center;
-    int radius;
+    float radius;
     vec3 color;
-    float ambient;
-    float diffuse;
+    Material * material;
+    vec3 translate;
+    void printInfo();
 };
 
 #endif /* Sphere_hpp */

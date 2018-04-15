@@ -9,12 +9,13 @@
 #define Object_hpp
 
 #include <stdio.h>
+#include <string>
 #include "Vector.hpp"
 
 class Object
 {
 public:
-    //virtual printInfo() = 0;
+    virtual void printInfo() = 0;
 };
 
 #endif /* Object_hpp */

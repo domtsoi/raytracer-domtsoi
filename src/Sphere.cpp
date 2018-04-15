@@ -6,3 +6,8 @@
 //
 
 #include "Sphere.hpp"
+
+void Sphere::printInfo()
+{
+    
+}

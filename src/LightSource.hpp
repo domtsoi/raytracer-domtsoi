@@ -16,6 +16,7 @@ class Light
 public:
     vec3 loc;
     vec3 color;
+    void printLight();
 };
 
 #endif /* LightSource_hpp */

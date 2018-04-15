@@ -14,7 +14,6 @@ vec3 Parse::parseVector(std::stringstream & Stream)
     Stream.ignore(numeric_limits<streamsize>::max(), '>');
     
     string line = buf.str(); // be careful...
-    cout << "Sphere parse vec line" << line << endl;
     int read = sscanf(line.c_str(), "%f, %f, %f", &v.x, &v.y, &v.z);
     
     if (read != 3)
@@ -31,34 +30,33 @@ void Parse::parseFile(std::stringstream & s, Scene & scene)
     //loop through substrings in stringstream
     while (s >> temp)
     {
-        cout << "cur temp: " << temp << endl;
         //checks for comment lines then ignores them.
         if (temp[0] == '/' && temp[1] == '/')
         {
             s.ignore(numeric_limits<streamsize>::max(), '\n');
         }
-        //checks for camera keyword
+        //checks for keywords and calls associated functions
         if (temp == "camera")
         {
             scene.cam = parseCam(s);
         }
         if (temp == "light_source")
         {
-            parseLight(s);
+            scene.lights.push_back(parseLight(s));
         }
         if (temp == "sphere")
         {
-            //parseSphere(s);
+            scene.objects.push_back(parseSphere(s));
         }
         if (temp == "plane")
         {
-            //parsePlane(s);
+            scene.objects.push_back(parsePlane(s));
         }
     }
 
 }
 
-//return cam\/
+//parses camera portion of string stream and returns camera pointer
 Camera * Parse::parseCam(std::stringstream & s)
 {
     //Camera Variables
@@ -68,7 +66,6 @@ Camera * Parse::parseCam(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     while (s >> temp)
     {
-        cout << "camera temp: " << temp << endl;
         if (temp == "location")
         {
             camera->loc = parseVector(s);
@@ -93,17 +90,70 @@ Camera * Parse::parseCam(std::stringstream & s)
     return camera;
 }
 
-void Parse::parseLight(std::stringstream & s)
+//parses light portion of string stream and returns light pointer
+Light * Parse::parseLight(std::stringstream & s)
 {
     Light * light = new Light();
     s.ignore(numeric_limits<streamsize>::max(), '{');
     light->loc = parseVector(s);
     light->color = parseVector(s);
+    s.ignore(numeric_limits<streamsize>::max(), '}');
+    return light;
 }
 
-void Parse::parseSphere(std::stringstream & s)
+//parses sphere portion of string stream and returns sphere pointer
+Sphere * Parse::parseSphere(std::stringstream & s)
 {
+    string temp;
     Sphere * sphere = new Sphere();
     s.ignore(numeric_limits<streamsize>::max(), '{');
-    
+    sphere->center = parseVector(s);
+    s >> temp;
+    s >> temp;
+    sphere->radius = stof(temp);
+    sphere->color = parsePigment(s);
+    sphere->material = parseFinish(s);
+    sphere->translate = Parse::parseVector(s);
+    return sphere;
+}
+
+//parses pigment portion of string stream and returns a vec3
+vec3 Parse::parsePigment(std::stringstream & s)
+{
+    vec3 temp;
+    s.ignore(numeric_limits<streamsize>::max(), '{');
+    s.unget();
+    temp = Parse::parseVector(s);
+    s.ignore(numeric_limits<streamsize>::max(), '}');
+    return temp;
+}
+
+//parses finish portion of string stream and returns a Material pointer
+Material * Parse::parseFinish(std::stringstream & s)
+{
+    string temp;
+    Material * material = new Material();
+    s.ignore(numeric_limits<streamsize>::max(), '{');
+    s >> temp;
+    s >> temp;
+    material->ambient = stof(temp);
+    s >> temp;
+    s >> temp;
+    material->diffuse = stof(temp);
+    return material;
+}
+
+//parses plane portion of string stream and returns a Plane pointer
+Plane * Parse::parsePlane(std::stringstream & s)
+{
+    string temp;
+    Plane * plane = new Plane();
+    s.ignore(numeric_limits<streamsize>::max(), '{');
+    plane->normal = parseVector(s);
+    s >> temp;
+    s >> temp;
+    plane->distance = stof(temp);
+    plane->color = parsePigment(s);
+    plane->material = parseFinish(s);
+    return plane;
 }

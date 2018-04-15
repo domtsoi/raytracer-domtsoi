@@ -10,6 +10,12 @@
 #include "Plane.hpp"
 #include "Sphere.hpp"
 #include "Scene.hpp"
+//#include "Application.hpp"
+#define RAYCAST  1
+#define SCENEINFO 2
+#define PIXELRAY 3
+#define FIRSTHIT 4
+
 using namespace std;
 //Global Variables
 Camera * camera;
@@ -39,27 +45,130 @@ stringstream getString(string file)
     return ifToSstr(readIn);
 }
 
-int main(int argc, char **argv)
+int checkMode(string mode)
+{
+    if (mode == "raycast")
+    {
+        return RAYCAST;
+    }
+    if (mode == "sceneinfo")
+    {
+        return SCENEINFO;
+    }
+    if (mode == "pixelray")
+    {
+        return PIXELRAY;
+    }
+    if (mode == "firsthit")
+    {
+        return FIRSTHIT;
+    }
+}
+
+void checkArgs(int argc, int mode)
+{
+    if (mode == RAYCAST)
+    {
+        if (argc != 5)
+        {
+            std::cerr << "ERROR: Incorrect arguments for Raytracer - raycast" << std::endl;
+            std::cerr << "Please use format: raytrace raycast <input_filename> <width> <height>" << std::endl;
+            exit(1);
+        }
+    }
+    if (mode == SCENEINFO)
+    {
+        if (argc != 3)
+        {
+            std::cerr << "ERROR: Incorrect arguments for Raytracer - sceneinfo" << std::endl;
+            std::cerr << "Please use format: raytrace sceneinfo <input_filename>" << std::endl;
+            exit(1);
+        }
+    }
+    if (mode == PIXELRAY || mode == FIRSTHIT)
+    {
+        if (argc != 7)
+        {
+            std::cerr << "ERROR: Incorrect arguments for Raytracer - firsthit || pixelray" << std::endl;
+            std::cerr << "Please use format: raytrace <firsthit || pixelray> <input_filename> <width> <height> <x> <y>" << std::endl;
+            exit(1);
+        }
+    }
+}
+
+void printBreak()
+{
+    cout << "\n---\n" << endl;
+}
+
+void printLights(std::vector<Light *> lights)
+{
+    cout << lights.size() << " light(s)\n" << endl;
+    for (int i = 0; i < lights.size(); i++)
+    {
+        cout << "Light[" << i << "]:" << endl;
+        lights[i]->printLight();
+    }
+    
+    
+}
+
+void printScene(string file, Scene scene)
+{
+    cout << "> raytrace sceneinfo " << file << endl;
+    scene.cam->printCamera();
+    printBreak();
+    printLights(scene.lights);
+    printBreak();
+}
+
+int main(int argc, char *argv[])
 {
     // Main Variables
+    //Application * application = new Application();
     stringstream ss;
     int wWidth;
     int wHeight;
+    int pixelX;
+    int pixelY;
     int mode;
     Scene scene;
+    //Check raytracer mode
+    
     //Check to see if command line args are correct
-    if (argc != 5)
+    //application->initArgs(argc, argv);
+    mode = checkMode(argv[1]);
+    if (mode == RAYCAST)
     {
-        cerr << "ERROR: Incorrect arguments for Raytracer" << endl;
-        cerr << "Please use format: raytrace raycast <input_filename> <width> <height>" << endl;
-        exit(1);
+        ss = getString(argv[2]);
+        wWidth =  atoi(argv[3]);
+        wHeight = atoi(argv[4]);
+        Parse::parseFile(ss, scene);
     }
-    //if (argv[1] == )
-    //Need to do mode check
+    if (mode == SCENEINFO)
+    {
+        ss = getString(argv[2]);
+        Parse::parseFile(ss, scene);
+        
+    }
+    if (mode == PIXELRAY)
+    {
+        wWidth =  atoi(argv[3]);
+        wHeight = atoi(argv[4]);
+        pixelX = atoi(argv[5]);
+        pixelY = atoi(argv[6]);
+    }
+    if (mode == FIRSTHIT)
+    {
+        wWidth =  atoi(argv[3]);
+        wHeight = atoi(argv[4]);
+        pixelX = atoi(argv[5]);
+        pixelY = atoi(argv[6]);
+        Parse::parseFile(ss, scene);
+    }
     ss = getString(argv[2]);
-    wWidth =  atoi(argv[3]);
-    wHeight = atoi(argv[4]);
-    Parse::parseFile(ss, scene);
+    
+    
     cout << "Made it to the end!" << endl;
     return 0;
 }

@@ -18,6 +18,7 @@ public:
     vec3 up;
     vec3 right;
     vec3 lookAt;
+    void printCamera();
 };
 
 #endif /* Camera_hpp */

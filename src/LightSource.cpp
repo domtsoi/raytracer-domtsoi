@@ -6,3 +6,8 @@
 //
 
 #include "LightSource.hpp"
+
+void Light::printLight()
+{
+    
+}

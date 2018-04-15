@@ -6,3 +6,8 @@
 //
 
 #include "Plane.hpp"
+
+void Plane::printInfo()
+{
+    
+}
