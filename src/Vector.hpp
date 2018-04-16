@@ -14,6 +14,13 @@ struct vec3
 {
 public:
     float x, y, z;
+    
+    static float getDataX(vec3 dataIn);
+    
+    static float getDataY(vec3 dataIn);
+    
+    static float getDataZ(vec3 dataIn);
+
 };
 
 #endif /* Vector_hpp */

@@ -6,3 +6,18 @@
 //
 
 #include "Vector.hpp"
+
+float vec3::getDataX(vec3 dataIn)
+{
+    return dataIn.x;
+}
+
+float vec3::getDataY(vec3 dataIn)
+{
+    return dataIn.y;
+}
+
+float vec3::getDataZ(vec3 dataIn)
+{
+    return dataIn.z;
+}

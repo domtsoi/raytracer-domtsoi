@@ -10,6 +10,7 @@
 #include "Plane.hpp"
 #include "Sphere.hpp"
 #include "Scene.hpp"
+#include "Ray.hpp"
 
 //#include "Application.hpp"
 #define RAYCAST  1
@@ -138,7 +139,16 @@ void printScene(string file, Scene scene)
     printObjects(scene.objects);
 }
 
-void getRay(Camera * camera, int x, int y)
+Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, string file)
+{
+    Ray * ray = new Ray();
+    cout << "> raytrace pixelray " << file << " " << width << " " << height << " " << pX <<  " " << pY << endl;
+    cout << "Pixel: [" << pX << ", " << pY << "] ";
+    ray = Ray::getRay(camera, width, height, pX, pY);
+    ray->printRay();
+    return ray;
+}
+void printFirstHit(Ray * ray)
 {
     
 }
@@ -154,6 +164,7 @@ int main(int argc, char *argv[])
     int pixelY;
     int mode;
     Scene scene;
+    Ray * ray;
     //Check raytracer mode
     
     //Check to see if command line args are correct
@@ -175,23 +186,26 @@ int main(int argc, char *argv[])
     }
     if (mode == PIXELRAY)
     {
-        wWidth =  atoi(argv[3]);
-        wHeight = atoi(argv[4]);
-        pixelX = atoi(argv[5]);
-        pixelY = atoi(argv[6]);
-        getRay(scene.cam, wWidth, wHeight);
-    }
-    if (mode == FIRSTHIT)
-    {
+        ss = getString(argv[2]);
         wWidth =  atoi(argv[3]);
         wHeight = atoi(argv[4]);
         pixelX = atoi(argv[5]);
         pixelY = atoi(argv[6]);
         Parse::parseFile(ss, scene);
+        printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
+        
+    }
+    if (mode == FIRSTHIT)
+    {
+        ss = getString(argv[2]);
+        wWidth =  atoi(argv[3]);
+        wHeight = atoi(argv[4]);
+        pixelX = atoi(argv[5]);
+        pixelY = atoi(argv[6]);
+        Parse::parseFile(ss, scene);
+        ray = printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
+        printFirstHit(ray);
     }
     ss = getString(argv[2]);
-    
-    
-    cout << "Made it to the end!" << endl;
     return 0;
 }
