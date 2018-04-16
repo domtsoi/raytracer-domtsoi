@@ -10,6 +10,7 @@
 #include "Plane.hpp"
 #include "Sphere.hpp"
 #include "Scene.hpp"
+
 //#include "Application.hpp"
 #define RAYCAST  1
 #define SCENEINFO 2
@@ -51,17 +52,23 @@ int checkMode(string mode)
     {
         return RAYCAST;
     }
-    if (mode == "sceneinfo")
+    else if (mode == "sceneinfo")
     {
         return SCENEINFO;
     }
-    if (mode == "pixelray")
+    else if (mode == "pixelray")
     {
         return PIXELRAY;
     }
-    if (mode == "firsthit")
+    else if (mode == "firsthit")
     {
         return FIRSTHIT;
+    }
+    else
+    {
+        std::cerr << "ERROR: Incorrect function for Raytracer" << std::endl;
+        std::cerr << "Please use: raytrace, sceneinfor, pixelray, or firsthit" << std::endl;
+        exit(1);
     }
 }
 
@@ -90,7 +97,7 @@ void checkArgs(int argc, int mode)
         if (argc != 7)
         {
             std::cerr << "ERROR: Incorrect arguments for Raytracer - firsthit || pixelray" << std::endl;
-            std::cerr << "Please use format: raytrace <firsthit || pixelray> <input_filename> <width> <height> <x> <y>" << std::endl;
+            std::cerr << "Please use format: raytrace <firsthit or pixelray> <input_filename> <width> <height> <x> <y>" << std::endl;
             exit(1);
         }
     }
@@ -109,8 +116,6 @@ void printLights(std::vector<Light *> lights)
         cout << "Light[" << i << "]:" << endl;
         lights[i]->printLight();
     }
-    
-    
 }
 
 void printObjects(std::vector<Object *> objects)
@@ -131,6 +136,11 @@ void printScene(string file, Scene scene)
     printLights(scene.lights);
     printBreak();
     printObjects(scene.objects);
+}
+
+void getRay(Camera * camera, int x, int y)
+{
+    
 }
 
 int main(int argc, char *argv[])
@@ -169,6 +179,7 @@ int main(int argc, char *argv[])
         wHeight = atoi(argv[4]);
         pixelX = atoi(argv[5]);
         pixelY = atoi(argv[6]);
+        getRay(scene.cam, wWidth, wHeight);
     }
     if (mode == FIRSTHIT)
     {
