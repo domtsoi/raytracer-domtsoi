@@ -11,6 +11,7 @@
 #include "Sphere.hpp"
 #include "Scene.hpp"
 #include "Ray.hpp"
+#include "Intersection.hpp"
 
 //#include "Application.hpp"
 #define RAYCAST  1
@@ -148,9 +149,10 @@ Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, stri
     ray->printRay();
     return ray;
 }
-void printFirstHit(Ray * ray)
+void printFirstHit(Ray * ray, Scene scene)
 {
-    
+    Intersection * intersection = new Intersection();
+    intersection->checkScene(ray, scene);
 }
 
 int main(int argc, char *argv[])
@@ -176,6 +178,7 @@ int main(int argc, char *argv[])
         wWidth =  atoi(argv[3]);
         wHeight = atoi(argv[4]);
         Parse::parseFile(ss, scene);
+        
     }
     if (mode == SCENEINFO)
     {
@@ -204,7 +207,7 @@ int main(int argc, char *argv[])
         pixelY = atoi(argv[6]);
         Parse::parseFile(ss, scene);
         ray = printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
-        printFirstHit(ray);
+        printFirstHit(ray, scene);
     }
     ss = getString(argv[2]);
     return 0;

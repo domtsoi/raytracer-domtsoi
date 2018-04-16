@@ -12,6 +12,7 @@
 #include "Vector.hpp"
 #include "Material.hpp"
 #include "Object.hpp"
+#include "Ray.hpp"
 
 class Plane:public Object
 {
@@ -21,6 +22,9 @@ public:
     vec3 color;
     Material * material;
     void printInfo();
+    void printObjectType();
+    void printObjectColor();
+    float checkIntersect(const Ray * ray);
 };
 
 #endif /* Plane_hpp */

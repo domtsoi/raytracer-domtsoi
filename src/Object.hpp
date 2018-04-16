@@ -11,11 +11,18 @@
 #include <stdio.h>
 #include <string>
 #include "Vector.hpp"
+#include "Ray.hpp"
 
 class Object
 {
 public:
     virtual void printInfo() = 0;
+    
+    virtual void printObjectType() = 0;
+    
+    virtual void printObjectColor() = 0;
+    
+    virtual float checkIntersect(const Ray * ray) = 0;
 };
 
 #endif /* Object_hpp */

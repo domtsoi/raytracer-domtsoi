@@ -16,3 +16,18 @@ void Plane::printInfo()
     std::cout << "- Color: {" << color.x << " " << color.y << " " << color.z << "}" << std::endl;
     std::cout << "- Material:\n" << "Ambient: " << material->ambient<< "\n-Diffuse: " << material->diffuse << std::endl;
 }
+
+void Plane::printObjectType()
+{
+    std::cout << "Object Type: Plane" << std::endl;
+}
+
+void Plane::printObjectColor()
+{
+    std::cout << "Color: " << color.x << " " << color.y << " " << color.z << std::endl;
+}
+
+float Plane::checkIntersect(const Ray * ray)
+{
+    return 0;
+}

@@ -12,6 +12,8 @@
 #include "Vector.hpp"
 #include "Material.hpp"
 #include "Object.hpp"
+#include "Intersection.hpp"
+#include "Ray.hpp"
 
 class Sphere:public Object
 {
@@ -22,6 +24,9 @@ public:
     Material * material;
     vec3 translate;
     void printInfo();
+    void printObjectType();
+    void printObjectColor();
+    float checkIntersect(const Ray * ray);
 };
 
 #endif /* Sphere_hpp */
