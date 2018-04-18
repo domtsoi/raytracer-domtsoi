@@ -7,9 +7,12 @@
 
 #include "Plane.hpp"
 #include <iostream>
+#include <iomanip>
 
 void Plane::printInfo()
 {
+    std::cout << std::setiosflags(std::ios::fixed);
+    std::cout << std::setprecision(4);
     std::cout << "- Type: Plane" << std::endl;
     std::cout << "- Normal: {" << normal.x << " " << normal.y << " " << normal.z << "}" << std::endl;
     std::cout << "- Distance: " << distance << std::endl;

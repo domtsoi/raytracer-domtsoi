@@ -9,10 +9,13 @@
 #include "Camera.hpp"
 #include <glm/glm.hpp>
 #include <iostream>
+#include <iomanip>
 #include "Vector.hpp"
 
 void Ray::printRay()
 {
+    std::cout << std::setiosflags(std::ios::fixed);
+    std::cout << std::setprecision(4);
     std::cout << "Ray: {" << origin.x << " " << origin.y << " " << origin.z << "} -> {" << direction.x << " " << direction.y << " " << direction.z << "}" << std::endl;
 }
 
@@ -40,6 +43,5 @@ Ray * Ray::getRay(Camera * camera, int width, int height, int pX, int pY)
     ray->direction.x = nDirection.x;
     ray->direction.y = nDirection.y;
     ray->direction.z = nDirection.z;
-    std::cout << "this is l var x" << l.x << std::endl;
     return ray;
 }

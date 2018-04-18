@@ -7,10 +7,13 @@
 
 #include "Sphere.hpp"
 #include <iostream>
+#include <iomanip>
 #include <glm/glm.hpp>
 
 void Sphere::printInfo()
 {
+    std::cout << std::setiosflags(std::ios::fixed);
+    std::cout << std::setprecision(4);
     std::cout << "- Type: Sphere" << std::endl;
     std::cout << "- Center: {" << center.x << " " << center.y << " " << center.z << "}" << std::endl;
     std::cout << "- Radius: " << radius << std::endl;
