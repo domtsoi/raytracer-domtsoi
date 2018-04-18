@@ -25,7 +25,7 @@ Ray * Ray::getRay(Camera * camera, int width, int height, int pX, int pY)
     glm::vec3 location = glm::vec3(camera->loc.x, camera->loc.y, camera->loc.z);
     glm::vec3 u = glm::vec3(camera->right.x, camera->right.y, camera->right.z);
     glm::vec3 v = glm::vec3(camera->up.x, camera->up.y, camera->up.z);
-    glm::vec4 l = normalize(glm::vec4(lookat - location, 0));
+    glm::vec3 l = normalize(lookat - location);
     glm::vec3 w = -l;
     glm::vec3 direction = glm::vec3(0, 0, 0);
     glm::vec3 nDirection = glm::vec3(0, 0, 0);
