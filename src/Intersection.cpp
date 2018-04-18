@@ -12,7 +12,7 @@ const static float EPSILON = 0.0001f;
 void Intersection::checkScene(Ray * ray, Scene scene)
 {
     float tempT;
-    for (int i = 0; i < scene.objects.size(); i++)
+    for (unsigned int i = 0; i < scene.objects.size(); i++)
     {
         tempT = scene.objects[i]->checkIntersect(ray);
         if (tempT > EPSILON && tempT < curT)
