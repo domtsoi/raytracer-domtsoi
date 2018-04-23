@@ -9,13 +9,13 @@
 #define LightSource_hpp
 
 #include <stdio.h>
-#include "Vector.hpp"
+#include <glm/glm.hpp>
 
 class Light
 {
 public:
-    vec3 loc;
-    vec3 color;
+    glm::vec3 loc;
+    glm::vec3 color;
     void printLight();
 };
 

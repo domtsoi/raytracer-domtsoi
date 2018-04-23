@@ -1,11 +1,12 @@
 #include "Parse.hpp"
+#include <glm/glm.hpp>
 
 using namespace std;
 
 
-vec3 Parse::parseVector(std::stringstream & Stream)
+glm::vec3 Parse::parseVector(std::stringstream & Stream)
 {
-    vec3 v;
+    glm::vec3 v;
     v.x = v.y = v.z = 0.f;
     std::stringbuf buf;
     
@@ -118,9 +119,9 @@ Sphere * Parse::parseSphere(std::stringstream & s)
 }
 
 //parses pigment portion of string stream and returns a vec3
-vec3 Parse::parsePigment(std::stringstream & s)
+glm::vec3 Parse::parsePigment(std::stringstream & s)
 {
-    vec3 temp;
+    glm::vec3 temp;
     s.ignore(numeric_limits<streamsize>::max(), '{');
     s.unget();
     temp = Parse::parseVector(s);

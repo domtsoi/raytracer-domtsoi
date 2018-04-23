@@ -10,7 +10,6 @@
 #include <glm/glm.hpp>
 #include <iostream>
 #include <iomanip>
-#include "Vector.hpp"
 
 void Ray::printRay()
 {

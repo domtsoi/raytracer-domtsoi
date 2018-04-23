@@ -9,15 +9,15 @@
 #define Camera_hpp
 
 #include <stdio.h>
-#include "Vector.hpp"
+#include <glm/glm.hpp>
 
 class Camera
 {
 public:
-    vec3 loc;
-    vec3 up;
-    vec3 right;
-    vec3 lookAt;
+    glm::vec3 loc;
+    glm::vec3 up;
+    glm::vec3 right;
+    glm::vec3 lookAt;
     void printCamera();
 };
 

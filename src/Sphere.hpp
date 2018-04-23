@@ -9,7 +9,7 @@
 #define Sphere_hpp
 
 #include <stdio.h>
-#include "Vector.hpp"
+#include <glm/glm.hpp>
 #include "Material.hpp"
 #include "Object.hpp"
 #include "Intersection.hpp"
@@ -18,11 +18,11 @@
 class Sphere:public Object
 {
 public:
-    vec3 center;
+    glm::vec3 center;
     float radius;
-    vec3 color;
+    glm::vec3 color;
     Material * material;
-    vec3 translate;
+    glm::vec3 translate;
     void printInfo();
     void printObjectType();
     void printObjectColor();

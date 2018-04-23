@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <glm/glm.hpp>
 
 #include "Parse.hpp"
 #include "Camera.hpp"
@@ -12,6 +13,7 @@
 #include "Scene.hpp"
 #include "Ray.hpp"
 #include "Intersection.hpp"
+#include "Image.h"
 
 //#include "Application.hpp"
 #define RAYCAST  1
@@ -23,6 +25,7 @@ using namespace std;
 //Global Variables
 Camera * camera;
 vector<Light *> lights;
+const static float EPSILON = 0.0001f;
 //vector<Objects *> objects;
 
 //converts ifstream to string stream
@@ -151,8 +154,30 @@ Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, stri
 }
 void printFirstHit(Ray * ray, Scene scene)
 {
-    Intersection * intersection = new Intersection();
-    intersection->checkScene(ray, scene);
+    Object * curObject;
+    float curT = 1000000000;
+    bool hit = false;
+    float tempT;
+    for (unsigned int i = 0; i < scene.objects.size(); i++)
+    {
+        tempT = scene.objects[i]->checkIntersect(ray);
+        if (tempT > EPSILON && tempT < curT)
+        {
+            hit = true;
+            curT = tempT;
+            curObject = scene.objects[i];
+        }
+    }
+    if (hit == false)
+    {
+        cout << "No Hit" << endl;
+    }
+    else if (hit == true)
+    {
+        cout << "T = " << curT << endl;
+        curObject->printObjectType();
+        curObject->printObjectColor();
+    }
 }
 
 int main(int argc, char *argv[])
@@ -178,7 +203,7 @@ int main(int argc, char *argv[])
         wWidth =  atoi(argv[3]);
         wHeight = atoi(argv[4]);
         Parse::parseFile(ss, scene);
-        
+        //renderRayCast(scene, wWidth, wHeight);
     }
     if (mode == SCENEINFO)
     {

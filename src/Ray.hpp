@@ -9,14 +9,14 @@
 #define Ray_hpp
 
 #include <stdio.h>
-#include "Vector.hpp"
+#include <glm/glm.hpp>
 #include "Camera.hpp"
 
 class Ray
 {
 public:
-    vec3 origin;
-    vec3 direction;
+    glm::vec3 origin;
+    glm::vec3 direction;
     void printRay();
     static Ray * getRay(Camera * camera, int width, int height, int pX, int pY);
 };
