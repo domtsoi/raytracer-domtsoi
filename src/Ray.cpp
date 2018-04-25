@@ -37,7 +37,7 @@ Ray * Ray::getRay(Camera * camera, int width, int height, int pX, int pY)
     Us = (-1/2) + ((pX + 0.5) / width);
     Vs = (-1/2) + ((pY + 0.5) / height);
     Ws = -1;
-    direction = (location + Us * u + Vs *v + Ws * w) - location;
+    direction = (Us * u + Vs *v + Ws * w);
     nDirection = normalize(direction);
     ray->direction.x = nDirection.x;
     ray->direction.y = nDirection.y;
