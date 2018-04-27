@@ -20,8 +20,6 @@ class Sphere:public Object
 public:
     glm::vec3 center;
     float radius;
-    glm::vec3 color;
-    Material * material;
     glm::vec3 translate;
     void printInfo();
     void printObjectType();

@@ -12,11 +12,14 @@
 #include <string>
 #include "Vector.hpp"
 #include "Ray.hpp"
+#include "Material.hpp"
 
 class Object
 {
 public:
     glm::vec3 color;
+    
+    Material * material;
     
     virtual void printInfo() = 0;
     

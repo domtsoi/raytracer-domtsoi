@@ -11,6 +11,18 @@
 #include <iostream>
 #include <iomanip>
 
+Ray::Ray()
+{
+    origin = glm::vec3();
+    direction = glm::vec3();
+}
+
+Ray::Ray(glm::vec3 inOrigin, glm::vec3 inDirection)
+{
+    origin = inOrigin;
+    direction = inDirection;
+}
+
 void Ray::printRay()
 {
     std::cout << std::setiosflags(std::ios::fixed);

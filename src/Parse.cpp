@@ -137,7 +137,6 @@ Material * Parse::parseFinish(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     while (s >> temp)
     {
-        cout << "temp: " << temp << endl;
         if (temp == "ambient")
         {
             s >> temp;
@@ -183,5 +182,6 @@ Plane * Parse::parsePlane(std::stringstream & s)
     plane->distance = stof(temp);
     plane->color = parsePigment(s);
     plane->material = parseFinish(s);
+    //cout << "plane ambient" << plane->material->ambient << endl;
     return plane;
 }

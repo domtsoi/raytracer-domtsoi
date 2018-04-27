@@ -15,6 +15,8 @@
 #include "Ray.hpp"
 #include "Intersection.hpp"
 #include "Image.h"
+#include "Material.hpp"
+#include "Object.hpp"
 
 //#include "Application.hpp"
 #define RAYCAST  1
@@ -132,7 +134,7 @@ void printBreak()
     cout << "\n---\n" << endl;
 }
 
-//Prints information for lights
+//Prints information for all lights
 void printLights(std::vector<Light *> lights)
 {
     cout << lights.size() << " light(s)\n" << endl;
@@ -176,13 +178,12 @@ Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, stri
     return ray;
 }
 
-//**********Change to getFirstHit
 Intersection * getFirstHit(Ray * ray, Scene scene)
 {
     intersect = new Intersection();
     intersect->t = std::numeric_limits<float>::max();
     intersect->hit = false;
-    float tempT;
+    float tempT = std::numeric_limits<float>::max();
     for (unsigned int i = 0; i < scene.objects.size(); i++)
     {
         tempT = scene.objects[i]->checkIntersect(ray);
@@ -196,6 +197,7 @@ Intersection * getFirstHit(Ray * ray, Scene scene)
     return intersect;
 }
 
+//Move to Intersection class
 void printIntersection(Intersection * intersect)
 {
     if (intersect->hit == false)
@@ -213,29 +215,38 @@ void printIntersection(Intersection * intersect)
 void renderScene(int width, int height, Scene scene)
 {
     Ray * ray = new Ray();
+    Ray * lightray = new Ray();
     Intersection * curIntersect;
     Image * outImage = new Image(width, height);
     const string fileName = "out.png";
+    glm::vec3 Pt;
+    glm::vec3 color;
+    bool inShadow;
+    glm::vec3 lVec;
+    
     for (unsigned int x = 0; x < width; x++)
     {
         for (unsigned int y = 0; y < height; y++)
         {
             ray = Ray::getRay(scene.cam, width, height, x, y);
             curIntersect = getFirstHit(ray, scene);
+            color = glm::vec3(0, 0, 0);
             if (curIntersect->hit)
             {
                 //Do lighting stuff here
-                
-                
-                
-                
+                Pt = ray->origin + curIntersect->t * ray->direction;
+                color = curIntersect->curObject->color * curIntersect->curObject->material->ambient;
+                //for (unsigned int l = 0; l < lights.size(); l++)
+                //{
+                    //inShadow = false;
+                    //lVec = normalize(lights[l]->loc - Pt);
+                    //if (
+                //}
                 //cout << "writing hit" << endl;
-                cout << "red: " << round(curIntersect->curObject->color.x * 255.f) << "green: " << curIntersect->curObject->color.y * 255.f << "blue: " << curIntersect->curObject->color.z * 255.f << endl;
                 outImage->setPixel(x, y, (unsigned char)round(curIntersect->curObject->color.x * 255.f), (unsigned char)round(curIntersect->curObject->color.y * 255.f), (unsigned char)round(curIntersect->curObject->color.z * 255.f));
             }
             else
             {
-                //cout << "writing black background" << endl;
                 outImage->setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)0);
             }
         }
@@ -247,6 +258,7 @@ void renderScene(int width, int height, Scene scene)
 int main(int argc, char *argv[])
 {
     // Main Variables
+    //Make Application class and move all stuff in there to make code seem cleaner (TO DO...)
     //Application * application = new Application();
     stringstream ss;
     int wWidth;
@@ -261,7 +273,7 @@ int main(int argc, char *argv[])
     //Check to see if command line args are correct
     //application->initArgs(argc, argv);
     mode = checkMode(argv[1]);
-    //Check raytracer mode
+    //Check raytracer mode (MOVE OUT OF MAIN SOONER OR LATER)
     if (mode == RAYCAST)
     {
         //Casts Rays and Renders Image to Screen

@@ -19,8 +19,6 @@ class Plane:public Object
 public:
     glm::vec3 normal;
     float distance;
-    glm::vec3 color;
-    Material * material;
     void printInfo();
     void printObjectType();
     void printObjectColor();
