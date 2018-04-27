@@ -17,6 +17,7 @@ class Intersection
 public:
     float t;
     Object * curObject;
+    bool hit;
 };
 
 #endif /* Intersection_hpp */

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <glm/glm.hpp>
+#include <cmath>
 
 #include "Parse.hpp"
 #include "Camera.hpp"
@@ -25,6 +26,7 @@
 using namespace std;
 //Global Variables
 Camera * camera;
+Intersection * intersect;
 vector<Light *> lights;
 const static float EPSILON = 0.0001f;
 //vector<Objects *> objects;
@@ -52,6 +54,7 @@ stringstream getString(string file)
     return ifToSstr(readIn);
 }
 
+//checks the mode string and returns mode flag #
 int checkMode(string mode)
 {
     if (mode == "raycast")
@@ -82,6 +85,7 @@ int checkMode(string mode)
     }
 }
 
+//Checks for correct number of command line arguments for each mode
 void checkArgs(int argc, int mode)
 {
     if (mode == RAYCAST)
@@ -122,11 +126,13 @@ void checkArgs(int argc, int mode)
     }
 }
 
+//prints a line break for print outs
 void printBreak()
 {
     cout << "\n---\n" << endl;
 }
 
+//Prints information for lights
 void printLights(std::vector<Light *> lights)
 {
     cout << lights.size() << " light(s)\n" << endl;
@@ -137,6 +143,7 @@ void printLights(std::vector<Light *> lights)
     }
 }
 
+//Prints Information for all scene objects
 void printObjects(std::vector<Object *> objects)
 {
     cout << objects.size() << " object(s)\n" << endl;
@@ -147,6 +154,7 @@ void printObjects(std::vector<Object *> objects)
     }
 }
 
+//Prints whole scene
 void printScene(string file, Scene scene)
 {
     cout << "> raytrace sceneinfo " << file << endl;
@@ -157,6 +165,7 @@ void printScene(string file, Scene scene)
     printObjects(scene.objects);
 }
 
+//Prints the ray for a given screen x and y
 Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, string file)
 {
     Ray * ray = new Ray();
@@ -168,55 +177,70 @@ Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, stri
 }
 
 //**********Change to getFirstHit
-void printFirstHit(Ray * ray, Scene scene)
+Intersection * getFirstHit(Ray * ray, Scene scene)
 {
-    Object * curObject;
-    //************Create Intersect struct that stores the curobject and cur T value and Hit boolean
-    float curT = 1000000000;
-    bool hit = false;
+    intersect = new Intersection();
+    intersect->t = std::numeric_limits<float>::max();
+    intersect->hit = false;
     float tempT;
     for (unsigned int i = 0; i < scene.objects.size(); i++)
     {
         tempT = scene.objects[i]->checkIntersect(ray);
-        if (tempT > EPSILON && tempT < curT)
+        if (tempT > EPSILON && tempT < intersect->t)
         {
-            hit = true;
-            curT = tempT;
-            curObject = scene.objects[i];
+            intersect->hit = true;
+            intersect->t = tempT;
+            intersect->curObject = scene.objects[i];
         }
     }
-    
-    //move to external function for printing
-    if (hit == false)
+    return intersect;
+}
+
+void printIntersection(Intersection * intersect)
+{
+    if (intersect->hit == false)
     {
         cout << "No Hit" << endl;
     }
-    else if (hit == true)
+    else if (intersect->hit == true)
     {
-        cout << "T = " << curT << endl;
-        curObject->printObjectType();
-        curObject->printObjectColor();
+        cout << "T = " << intersect->t << endl;
+        intersect->curObject->printObjectType();
+        intersect->curObject->printObjectColor();
     }
 }
 
 void renderScene(int width, int height, Scene scene)
 {
     Ray * ray = new Ray();
-    glm::vec3 background = glm::vec3(0, 0, 0);
+    Intersection * curIntersect;
     Image * outImage = new Image(width, height);
-    const int numChannels = 3;
     const string fileName = "out.png";
-    unsigned char *data = new unsigned char(width * height * numChannels);
     for (unsigned int x = 0; x < width; x++)
     {
         for (unsigned int y = 0; y < height; y++)
         {
             ray = Ray::getRay(scene.cam, width, height, x, y);
-            //getFirstHit
-            //outImage->setPixel(x, y, <#unsigned char r#>, <#unsigned char g#>, <#unsigned char b#>)
+            curIntersect = getFirstHit(ray, scene);
+            if (curIntersect->hit)
+            {
+                //Do lighting stuff here
+                
+                
+                
+                
+                //cout << "writing hit" << endl;
+                cout << "red: " << round(curIntersect->curObject->color.x * 255.f) << "green: " << curIntersect->curObject->color.y * 255.f << "blue: " << curIntersect->curObject->color.z * 255.f << endl;
+                outImage->setPixel(x, y, (unsigned char)round(curIntersect->curObject->color.x * 255.f), (unsigned char)round(curIntersect->curObject->color.y * 255.f), (unsigned char)round(curIntersect->curObject->color.z * 255.f));
+            }
+            else
+            {
+                //cout << "writing black background" << endl;
+                outImage->setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)0);
+            }
         }
     }
-    //outImage->writeToFile(fileName);
+    outImage->writeToFile(fileName);
 }
 
 
@@ -276,7 +300,7 @@ int main(int argc, char *argv[])
         pixelY = atoi(argv[6]);
         Parse::parseFile(ss, scene);
         ray = printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
-        printFirstHit(ray, scene);
+        getFirstHit(ray, scene);
     }
     if (mode == RENDER)
     {
@@ -299,7 +323,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            //render Cook-Torrance
+            //render Cook-Torrance (EXTRA CREDIT)
             
         }
     }

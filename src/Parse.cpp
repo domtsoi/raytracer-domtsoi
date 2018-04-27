@@ -135,12 +135,39 @@ Material * Parse::parseFinish(std::stringstream & s)
     string temp;
     Material * material = new Material();
     s.ignore(numeric_limits<streamsize>::max(), '{');
-    s >> temp;
-    s >> temp;
-    material->ambient = stof(temp);
-    s >> temp;
-    s >> temp;
-    material->diffuse = stof(temp);
+    while (s >> temp)
+    {
+        cout << "temp: " << temp << endl;
+        if (temp == "ambient")
+        {
+            s >> temp;
+            material->ambient = stof(temp);
+        }
+        else if (temp == "diffuse")
+        {
+            s >> temp;
+            material->diffuse = stof(temp);
+        }
+        else if (temp == "specular")
+        {
+            s >> temp;
+            material->specular = stof(temp);
+        }
+        else if (temp == "roughness")
+        {
+            s >> temp;
+            material->roughness = stof(temp);
+        }
+        else if (temp == "ior")
+        {
+            s >> temp;
+            material->ior = stof(temp);
+        }
+        else
+        {
+            return material;
+        }
+    }
     return material;
 }
 

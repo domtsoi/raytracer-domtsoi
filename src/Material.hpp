@@ -15,6 +15,9 @@ class Material
 public:
     float ambient;
     float diffuse;
+    float specular;
+    float roughness;
+    float ior;
 };
 
 #endif /* Material_hpp */

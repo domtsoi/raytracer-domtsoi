@@ -36,7 +36,7 @@ Ray * Ray::getRay(Camera * camera, int width, int height, int pX, int pY)
     ray->origin.z = camera->loc.z;
     Us = (-1/2.0) + ((pX + 0.5) / width);
     Vs = (-1/2.0) + ((pY + 0.5) / height);
-    std::cout << "Us: " << Us << " Vs: " << Vs << std::endl;
+    //std::cout << "Us: " << Us << " Vs: " << Vs << std::endl;
     Ws = -1;
     direction = (Us * u + Vs *v + Ws * w);
     nDirection = normalize(direction);

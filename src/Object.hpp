@@ -16,6 +16,8 @@
 class Object
 {
 public:
+    glm::vec3 color;
+    
     virtual void printInfo() = 0;
     
     virtual void printObjectType() = 0;
