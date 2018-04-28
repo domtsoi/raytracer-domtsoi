@@ -278,7 +278,6 @@ void renderSceneBlinnPhong(int width, int height, Scene scene)
             ray = Ray::getCamRay(scene.cam, width, height, x, y);
             curIntersect = getFirstHit(ray, scene);
             color = glm::vec3(0, 0, 0);
-            inShadow = false;
             //Checks if camera ray hits an object in the scene
             //printf("curIntersect Hit:%d\n", curIntersect->hit);
             if (curIntersect->hit)
@@ -304,6 +303,7 @@ void renderSceneBlinnPhong(int width, int height, Scene scene)
                 color = curObject->color * curObject->material->ambient;
                 for (unsigned int l = 0; l < lights.size(); l++)
                 {
+                    inShadow = false;
                     lColor = lights[l]->color;
                     lVec = glm::normalize(lights[l]->loc - Pt);
                     H = glm::normalize(view + lVec);
