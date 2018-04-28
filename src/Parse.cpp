@@ -112,9 +112,28 @@ Sphere * Parse::parseSphere(std::stringstream & s)
     s >> temp;
     s >> temp;
     sphere->radius = stof(temp);
-    sphere->color = parsePigment(s);
-    sphere->material = parseFinish(s);
-    sphere->translate = Parse::parseVector(s);
+    while (s >> temp)
+    {
+        cout << "sphere temp: " << temp << endl;
+        if (temp == "pigment")
+        {
+            sphere->color = parsePigment(s);
+            //s.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        if (temp == "finish")
+        {
+            sphere->material = parseFinish(s);
+            s.unget();
+        }
+        if (temp == "translate")
+        {
+            sphere->translate = Parse::parseVector(s);
+        }
+        if (temp == "}")
+        {
+            return sphere;
+        }
+    }
     return sphere;
 }
 
@@ -137,6 +156,7 @@ Material * Parse::parseFinish(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     while (s >> temp)
     {
+        cout << "parse finish temp: " << temp << endl;
         if (temp == "ambient")
         {
             s >> temp;
@@ -162,7 +182,7 @@ Material * Parse::parseFinish(std::stringstream & s)
             s >> temp;
             material->ior = stof(temp);
         }
-        else
+        else if (temp == "}")
         {
             return material;
         }
