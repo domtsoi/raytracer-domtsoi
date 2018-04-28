@@ -6,7 +6,7 @@ using namespace std;
 
 glm::vec3 Parse::parseVector(std::stringstream & Stream)
 {
-    glm::vec3 v;
+    glm::vec3 v = glm::vec3();
     v.x = v.y = v.z = 0.f;
     std::stringbuf buf;
     
@@ -110,11 +110,12 @@ Sphere * Parse::parseSphere(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     sphere->center = parseVector(s);
     s >> temp;
+    //cout << "parseSphere temp1: " << temp << endl;
     s >> temp;
+    //cout << "parseSphere temp2: " << temp << endl;
     sphere->radius = stof(temp);
     while (s >> temp)
     {
-        cout << "sphere temp: " << temp << endl;
         if (temp == "pigment")
         {
             sphere->color = parsePigment(s);
@@ -131,9 +132,11 @@ Sphere * Parse::parseSphere(std::stringstream & s)
         }
         if (temp == "}")
         {
+            sphere->type = "Sphere";
             return sphere;
         }
     }
+    sphere->type = "Sphere";
     return sphere;
 }
 
@@ -156,7 +159,6 @@ Material * Parse::parseFinish(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     while (s >> temp)
     {
-        cout << "parse finish temp: " << temp << endl;
         if (temp == "ambient")
         {
             s >> temp;
@@ -203,5 +205,6 @@ Plane * Parse::parsePlane(std::stringstream & s)
     plane->color = parsePigment(s);
     plane->material = parseFinish(s);
     //cout << "plane ambient" << plane->material->ambient << endl;
+    plane->type = "Plane";
     return plane;
 }

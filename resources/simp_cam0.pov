@@ -16,12 +16,12 @@ sphere { <-3.5, 0, 0>, 1
   finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.1}
 }
 
-sphere { <1, 0, 0>,1.5
+sphere { <1, 0, 0>, 1.5
   pigment { color rgb <0.0, 1.0, 1.0>}
   finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.1}
 }
 
-sphere { <-2.5, 0, -4>,2
+sphere { <-2.5, 0, -4>, 2
   pigment { color rgb <1.0, 1.0, 0.0>}
   finish {ambient 0.2 diffuse 0.4 specular 0.1 roughness 0.1}
 }

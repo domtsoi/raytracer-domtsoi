@@ -31,7 +31,7 @@ void Ray::printRay()
 }
 
 //Need to clean this code up. put x, y, z components in vec3() initializers
-Ray * Ray::getRay(Camera * camera, int width, int height, int pX, int pY)
+Ray * Ray::getCamRay(Camera * camera, int width, int height, int pX, int pY)
 {
     Ray * ray = new Ray();
     float Us, Vs, Ws;

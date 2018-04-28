@@ -21,6 +21,7 @@ public:
     glm::vec3 center;
     float radius;
     glm::vec3 translate;
+    glm::vec3 normal;
     void printInfo();
     void printObjectType();
     void printObjectColor();

@@ -21,6 +21,8 @@ public:
     
     Material * material;
     
+    std::string type;
+    
     virtual void printInfo() = 0;
     
     virtual void printObjectType() = 0;
