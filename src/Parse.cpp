@@ -3,27 +3,7 @@
 
 using namespace std;
 
-
-glm::vec3 Parse::parseVector(std::stringstream & Stream)
-{
-    glm::vec3 v = glm::vec3();
-    v.x = v.y = v.z = 0.f;
-    std::stringbuf buf;
-    
-    Stream.ignore(numeric_limits<streamsize>::max(), '<');
-    Stream.get(buf, '>');
-    Stream.ignore(numeric_limits<streamsize>::max(), '>');
-    
-    string line = buf.str(); // be careful...
-    int read = sscanf(line.c_str(), "%f, %f, %f", &v.x, &v.y, &v.z);
-    
-    if (read != 3)
-    {
-        cerr << "Expected to read 3 vector elements but found '" << line << "'" << endl;
-    }
-    return v;
-}
-
+//Parses the file stream of the given .pov file
 void Parse::parseFile(std::stringstream & s, Scene & scene)
 {
     //parse variables
@@ -54,7 +34,7 @@ void Parse::parseFile(std::stringstream & s, Scene & scene)
             scene.objects.push_back(parsePlane(s));
         }
     }
-
+    
 }
 
 //parses camera portion of string stream and returns camera pointer
@@ -63,7 +43,7 @@ Camera * Parse::parseCam(std::stringstream & s)
     //Camera Variables
     Camera * camera = new Camera();
     string temp;
-
+    
     s.ignore(numeric_limits<streamsize>::max(), '{');
     while (s >> temp)
     {
@@ -140,17 +120,6 @@ Sphere * Parse::parseSphere(std::stringstream & s)
     return sphere;
 }
 
-//parses pigment portion of string stream and returns a vec3
-glm::vec3 Parse::parsePigment(std::stringstream & s)
-{
-    glm::vec3 temp;
-    s.ignore(numeric_limits<streamsize>::max(), '{');
-    s.unget();
-    temp = Parse::parseVector(s);
-    s.ignore(numeric_limits<streamsize>::max(), '}');
-    return temp;
-}
-
 //parses finish portion of string stream and returns a Material pointer
 Material * Parse::parseFinish(std::stringstream & s)
 {
@@ -207,4 +176,35 @@ Plane * Parse::parsePlane(std::stringstream & s)
     //cout << "plane ambient" << plane->material->ambient << endl;
     plane->type = "Plane";
     return plane;
+}
+
+//parses pigment portion of string stream and returns a vec3
+glm::vec3 Parse::parsePigment(std::stringstream & s)
+{
+    glm::vec3 temp;
+    s.ignore(numeric_limits<streamsize>::max(), '{');
+    s.unget();
+    temp = Parse::parseVector(s);
+    s.ignore(numeric_limits<streamsize>::max(), '}');
+    return temp;
+}
+
+glm::vec3 Parse::parseVector(std::stringstream & Stream)
+{
+    glm::vec3 v = glm::vec3();
+    v.x = v.y = v.z = 0.f;
+    std::stringbuf buf;
+    
+    Stream.ignore(numeric_limits<streamsize>::max(), '<');
+    Stream.get(buf, '>');
+    Stream.ignore(numeric_limits<streamsize>::max(), '>');
+    
+    string line = buf.str(); // be careful...
+    int read = sscanf(line.c_str(), "%f, %f, %f", &v.x, &v.y, &v.z);
+    
+    if (read != 3)
+    {
+        cerr << "Expected to read 3 vector elements but found '" << line << "'" << endl;
+    }
+    return v;
 }

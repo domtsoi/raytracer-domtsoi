@@ -30,7 +30,6 @@ using namespace std;
 //Global Variables
 Camera * camera;
 Intersection * intersect;
-vector<Light *> lights;
 const static float EPSILON = 0.0001f;
 
 //vector<Objects *> objects;
@@ -269,12 +268,13 @@ void renderSceneBlinnPhong(int width, int height, Scene scene)
     glm::vec3 view;
     //Image File Variables
     Image * outImage = new Image(width, height);
-    const string fileName = "out.png";
+    const string fileName = "output.png";
     
     for (unsigned int x = 0; x < width; x++)
     {
         for (unsigned int y = 0; y < height; y++)
         {
+            //Need to change when rays are not coming from camera anymore. It will be negation of ray.
             ray = Ray::getCamRay(scene.cam, width, height, x, y);
             curIntersect = getFirstHit(ray, scene);
             color = glm::vec3(0, 0, 0);
@@ -301,11 +301,11 @@ void renderSceneBlinnPhong(int width, int height, Scene scene)
                 //For Point Calculate Light and Shadow Values Using Secondary Rays
                 Pt = ray->origin + curIntersect->t * ray->direction;
                 color = curObject->color * curObject->material->ambient;
-                for (unsigned int l = 0; l < lights.size(); l++)
+                for (unsigned int l = 0; l < scene.lights.size(); l++)
                 {
                     inShadow = false;
-                    lColor = lights[l]->color;
-                    lVec = glm::normalize(lights[l]->loc - Pt);
+                    lColor = scene.lights[l]->color;
+                    lVec = glm::normalize(scene.lights[l]->loc - Pt);
                     H = glm::normalize(view + lVec);
                     shiftedPt = Pt + lVec * EPSILON;
                     secondaryRay = new Ray(shiftedPt, lVec);
@@ -314,19 +314,17 @@ void renderSceneBlinnPhong(int width, int height, Scene scene)
                     if (secondaryIntersect->hit)
                     {
                         secondaryPt = secondaryRay->origin + secondaryIntersect->t * secondaryRay->direction;
-                        lDist = calcDist3D(lights[l]->loc, shiftedPt);
+                        lDist = calcDist3D(scene.lights[l]->loc, shiftedPt);
                         objObjDist = calcDist3D(shiftedPt, secondaryPt);
                         if (objObjDist < lDist)
                         {
                             inShadow = true;
                         }
                     }
-                    printf("In Shadow:%d\n", inShadow);
                     if (inShadow == false)
                     {
-                        cout << "adding specular and diffuse" << endl;
-                        color += (calcDiffuse(kDiff, objNormal, lVec) * lColor);
-                        color += (calcSpecular(kSpec, H, objNormal, alpha) * lColor);
+                        color += (curObject->color * calcDiffuse(kDiff, objNormal, lVec) * lColor);
+                        color += (curObject->color * calcSpecular(kSpec, H, objNormal, alpha) * lColor);
                     }
                     
                 }
