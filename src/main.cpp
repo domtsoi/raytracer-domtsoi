@@ -273,6 +273,7 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
     float kSpec = curObject->material->specular;
     float kRough = curObject->material->roughness;
     float alpha = calculateAlpha(kRough);
+    glm::vec3 curObjectColor;
     //Light Calculation Variables
     glm::vec3 view = -normalize(ray->direction);
     glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
@@ -313,11 +314,22 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
         }
         if (!inShadow)
         {
-            color += (curObject->color * calcDiffuse(kDiff, objNormal, lVec) * lColor);
-            color += (curObject->color * calcSpecular(kSpec, H, objNormal, alpha) * lColor);
+            curObjectColor = glm::vec3(curObject->color.x, curObject->color.y, curObject->color.z);
+            color += (curObjectColor * calcDiffuse(kDiff, objNormal, lVec) * lColor);
+            color += (curObjectColor * calcSpecular(kSpec, H, objNormal, alpha) * lColor);
         }
     }
     return color;
+}
+
+Ray * calculateReflectionRay()
+{
+    
+}
+
+Ray * calculateRefractionRay()
+{
+    
 }
 
 //Function that recursively calculates
@@ -335,8 +347,19 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     }
     Object * curObject = curIntersect->curObject;
     Material * curMaterial = curObject->material;
-    color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection);
-    
+    glm::vec3 curObjectColor = glm::vec3(curObject->color.x, curObject->color.y, curObject->color.z);
+    float filter = curObject->color.w;
+    //local
+    color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
+    //reflection
+    Ray * reflectRay;
+    Intersection * refIntersect = getFirstHit(reflectRay, scene);
+    glm::vec3 curObjNormal = getObjectNormal(curObject, <#glm::vec3 point#>);
+    color += raytrace(scene, <#Ray *ray#>, <#Intersection *curIntersect#>, rCount--) * curObject->material->reflection * (1 - filter) * curObjectColor;
+    //refraction
+    Ray * refractRay;
+    refIntersect = getFirstHit(refractRay, scene);
+    color += raytrace(scene, <#Ray *ray#>, <#Intersection *curIntersect#>, rCount--) * filter  * curObjectColor;
     return color;
 }
 

@@ -17,7 +17,7 @@
 class Object
 {
 public:
-    glm::vec3 color;
+    glm::vec4 color;
     
     Material * material;
     
