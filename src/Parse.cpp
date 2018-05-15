@@ -188,6 +188,16 @@ Material * Parse::parseFinish(std::stringstream & s)
             s >> temp;
             material->ior = stof(temp);
         }
+        else if (temp == "reflection")
+        {
+            s >> temp;
+            material->reflection = stof(temp);
+        }
+        else if (temp == "refraction")
+        {
+            s >> temp;
+            material->reflection = stof(temp);
+        }
         else if (temp == "}")
         {
             return material;
@@ -197,14 +207,26 @@ Material * Parse::parseFinish(std::stringstream & s)
 }
 
 //parses pigment portion of string stream and returns a vec3
-glm::vec3 Parse::parsePigment(std::stringstream & s)
+glm::vec4 Parse::parsePigment(std::stringstream & s)
 {
     glm::vec3 temp;
+    glm::vec4 temp2;
+    string check;
     s.ignore(numeric_limits<streamsize>::max(), '{');
-    s.unget();
-    temp = Parse::parseVector(s);
+    //s.unget();
+    s >> check;
+    s >> check;
+    if (check == "rgb")
+    {
+        temp = Parse::parseVector(s);
+        temp2 = glm::vec4(temp, 0);
+    }
+    else if (check == "rgbf")
+    {
+        temp2 = Parse::parseVector4(s);
+    }
     s.ignore(numeric_limits<streamsize>::max(), '}');
-    return temp;
+    return temp2;
 }
 
 glm::vec3 Parse::parseVector(std::stringstream & Stream)
@@ -221,6 +243,26 @@ glm::vec3 Parse::parseVector(std::stringstream & Stream)
     int read = sscanf(line.c_str(), "%f, %f, %f", &v.x, &v.y, &v.z);
     
     if (read != 3)
+    {
+        cerr << "Expected to read 3 vector elements but found '" << line << "'" << endl;
+    }
+    return v;
+}
+
+glm::vec4 Parse::parseVector4(std::stringstream & Stream)
+{
+    glm:: vec4 v = glm::vec4();
+    v.x = v.y = v.z = v.w = 0.f;
+    std::stringbuf buf;
+    
+    Stream.ignore(numeric_limits<streamsize>::max(), '<');
+    Stream.get(buf, '>');
+    Stream.ignore(numeric_limits<streamsize>::max(), '>');
+    
+    string line = buf.str(); // be careful...
+    int read = sscanf(line.c_str(), "%f, %f, %f, %f", &v.x, &v.y, &v.z, &v.w);
+    
+    if (read != 4)
     {
         cerr << "Expected to read 3 vector elements but found '" << line << "'" << endl;
     }

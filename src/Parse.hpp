@@ -33,10 +33,9 @@ public:
     
     static Triangle * parseTriangle(std::stringstream & Stream);
     
-    static glm::vec3 parsePigment(std::stringstream & Stream);
+    static glm::vec4 parsePigment(std::stringstream & Stream);
     
     static Material * parseFinish(std::stringstream & Stream);
     
-    
-    
+    static glm::vec4 parseVector4(std::stringstream & Stream);
 };

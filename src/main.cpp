@@ -25,6 +25,7 @@
 #define PRINTRAYS 3
 #define FIRSTHIT 4
 #define RENDER 5
+#define MAXRECURSE 6
 
 using namespace std;
 //Global Variables
@@ -320,13 +321,23 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
 }
 
 //Function that recursively calculates
-glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * intersect, int rCount)
+glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCount)
 {
+    glm::vec3 color;
     if (rCount <= 0)
     {
         return glm::vec3(0, 0, 0);
     }
+    //Change this so all the color stuff goes on in raytrace and the setpixel uses that output color value.
+    if (!curIntersect->hit)
+    {
+        return glm::vec3(0, 0, 0);
+    }
+    Object * curObject = curIntersect->curObject;
+    Material * curMaterial = curObject->material;
+    color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection);
     
+    return color;
 }
 
 //Change to write to image and move color calculations out of method
@@ -348,17 +359,8 @@ void renderScene(int width, int height, Scene scene)
             ray = Ray::getCamRay(scene.cam, width, height, x, y);
             curIntersect = getFirstHit(ray, scene);
             color = glm::vec3(0, 0, 0);
-            //Change this so all the color stuff goes on in raytrace and the setpixel uses that output color value.
-            if (curIntersect->hit)
-            {
-                color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect);
-                outImage->setPixel(x, y, (unsigned char)clamp((color.x * 255.f), 0, 255), (unsigned char)clamp((color.y * 255.f), 0, 255), (unsigned char)clamp((color.z * 255.f), 0, 255));
-            }
-            else
-            {
-                //cout << "writing background color" << endl;
-                outImage->setPixel(x, y, (unsigned char)0, (unsigned char)0, (unsigned char)0);
-            }
+            color = raytrace(scene, ray, curIntersect, MAXRECURSE);
+            outImage->setPixel(x, y, (unsigned char)clamp((color.x * 255.f), 0, 255), (unsigned char)clamp((color.y * 255.f), 0, 255), (unsigned char)clamp((color.z * 255.f), 0, 255));
         }
     }
     outImage->writeToFile(fileName);

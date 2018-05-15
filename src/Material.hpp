@@ -18,6 +18,8 @@ public:
     float specular;
     float roughness;
     float ior;
+    float reflection;
+    float refraction;
 };
 
 #endif /* Material_hpp */

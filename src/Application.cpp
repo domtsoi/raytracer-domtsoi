@@ -11,9 +11,9 @@
 void Application::initArgs(int argc, char* arg[])
 {
     std::stringstream ss;
-    int wWidth;
-    int wHeight;
-    int mode;
+    //int wWidth;
+    //int wHeight;
+    //int mode;
     if (argc != 5)
     {
         std::cerr << "ERROR: Incorrect arguments for Raytracer" << std::endl;
