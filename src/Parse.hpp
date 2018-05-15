@@ -7,6 +7,7 @@
 #include "LightSource.hpp"
 #include "Sphere.hpp"
 #include "Plane.hpp"
+#include "Triangle.hpp"
 #include "Scene.hpp"
 #include "Material.hpp"
 #include <glm/glm.hpp>
@@ -28,10 +29,14 @@ public:
     
     static Sphere * parseSphere(std::stringstream & Stream);
     
+    static Plane * parsePlane(std::stringstream & Stream);
+    
+    static Triangle * parseTriangle(std::stringstream & Stream);
+    
     static glm::vec3 parsePigment(std::stringstream & Stream);
     
     static Material * parseFinish(std::stringstream & Stream);
     
-    static Plane * parsePlane(std::stringstream & Stream);
+    
     
 };

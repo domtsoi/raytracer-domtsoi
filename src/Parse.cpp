@@ -33,6 +33,10 @@ void Parse::parseFile(std::stringstream & s, Scene & scene)
         {
             scene.objects.push_back(parsePlane(s));
         }
+        if (temp == "triangle")
+        {
+            scene.objects.push_back(parseTriangle(s));
+        }
     }
     
 }
@@ -120,6 +124,37 @@ Sphere * Parse::parseSphere(std::stringstream & s)
     return sphere;
 }
 
+//parses plane portion of string stream and returns a Plane pointer
+Plane * Parse::parsePlane(std::stringstream & s)
+{
+    string temp;
+    Plane * plane = new Plane();
+    s.ignore(numeric_limits<streamsize>::max(), '{');
+    plane->normal = parseVector(s);
+    s >> temp;
+    s >> temp;
+    plane->distance = stof(temp);
+    plane->color = parsePigment(s);
+    plane->material = parseFinish(s);
+    //cout << "plane ambient" << plane->material->ambient << endl;
+    plane->type = "Plane";
+    return plane;
+}
+
+Triangle * Parse::parseTriangle(std::stringstream & s)
+{
+    string temp;
+    Triangle * triangle = new Triangle();
+    s.ignore(numeric_limits<streamsize>::max(), '{');
+    triangle->vertA = parseVector(s);
+    triangle->vertB = parseVector(s);
+    triangle->vertC = parseVector(s);
+    triangle->color = parsePigment(s);
+    triangle->material = parseFinish(s);
+    triangle->type = "triangle";
+    return triangle;
+}
+
 //parses finish portion of string stream and returns a Material pointer
 Material * Parse::parseFinish(std::stringstream & s)
 {
@@ -159,23 +194,6 @@ Material * Parse::parseFinish(std::stringstream & s)
         }
     }
     return material;
-}
-
-//parses plane portion of string stream and returns a Plane pointer
-Plane * Parse::parsePlane(std::stringstream & s)
-{
-    string temp;
-    Plane * plane = new Plane();
-    s.ignore(numeric_limits<streamsize>::max(), '{');
-    plane->normal = parseVector(s);
-    s >> temp;
-    s >> temp;
-    plane->distance = stof(temp);
-    plane->color = parsePigment(s);
-    plane->material = parseFinish(s);
-    //cout << "plane ambient" << plane->material->ambient << endl;
-    plane->type = "Plane";
-    return plane;
 }
 
 //parses pigment portion of string stream and returns a vec3

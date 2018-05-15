@@ -23,6 +23,7 @@ public:
     void printObjectType();
     void printObjectColor();
     float checkIntersect(const Ray * ray);
+    glm::vec3 getNormal();
 };
 
 #endif /* Plane_hpp */

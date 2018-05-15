@@ -22,7 +22,7 @@
 //#include "Application.hpp"
 #define RAYCAST  1
 #define SCENEINFO 2
-#define PIXELRAY 3
+#define PRINTRAYS 3
 #define FIRSTHIT 4
 #define RENDER 5
 
@@ -67,9 +67,9 @@ int checkMode(string mode)
     {
         return SCENEINFO;
     }
-    else if (mode == "pixelray")
+    else if (mode == "printrays")
     {
-        return PIXELRAY;
+        return PRINTRAYS;
     }
     else if (mode == "firsthit")
     {
@@ -108,12 +108,21 @@ void checkArgs(int argc, int mode)
             exit(1);
         }
     }
-    if (mode == PIXELRAY || mode == FIRSTHIT)
+    if (mode == FIRSTHIT)
     {
         if (argc != 7)
         {
             std::cerr << "ERROR: Incorrect arguments for Raytracer - firsthit || pixelray" << std::endl;
             std::cerr << "Please use format: raytrace <firsthit or pixelray> <input_filename> <width> <height> <x> <y>" << std::endl;
+            exit(1);
+        }
+    }
+    if (mode == PRINTRAYS)
+    {
+        if (argc != 7 || argc != 8)
+        {
+            std::cerr << "ERROR: Incorrect arguments for Raytracer - printrays" << std::endl;
+            std::cerr << "Please use format: raytrace printrays <input_filename> <width> <height> <x> <y> [-altbrdf]" << std::endl;
             exit(1);
         }
     }
@@ -239,33 +248,95 @@ float calcSpecular(float kSpec, glm::vec3 H, glm::vec3 normal, float alpha)
     return kSpec * pow(clamped, alpha);
 }
 
-void renderSceneBlinnPhong(int width, int height, Scene scene)
+glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
 {
-    //Camera Intersection Variables
-    Ray * ray = new Ray();
-    Intersection * curIntersect;
-    Object * curObject;
-    glm::vec3 Pt;
+    if (curObject->type == "Plane")
+    {
+        return static_cast<Plane*>(curObject)->getNormal();
+    }
+    else if (curObject->type == "Sphere")
+    {
+        return static_cast<Sphere*>(curObject)->getNormal(point);
+    }
+    else
+    {
+        return static_cast<Triangle*>(curObject)->getNormal();
+    }
+}
+
+glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Intersection * curIntersect)
+{
+    //Material Properties of current object
+    float kAmb = curObject->material->ambient;
+    float kDiff = curObject->material->diffuse;
+    float kSpec = curObject->material->specular;
+    float kRough = curObject->material->roughness;
+    float alpha = calculateAlpha(kRough);
+    //Light Calculation Variables
+    glm::vec3 view = -normalize(ray->direction);
+    glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
+    glm::vec3 objNormal = getObjectNormal(curObject, Pt);
+    glm::vec3 color = glm::vec3(0, 0, 0);
+    glm::vec3 lColor;
+    glm::vec3 H;
     //Secondary Ray Variables
     Ray * secondaryRay = new Ray();
     Intersection * secondaryIntersect;
     glm::vec3 shiftedPt;
     glm::vec3 secondaryPt;
     glm::vec3 lVec;
-    glm::vec3 lColor;
+    bool inShadow;
     float lDist;
     float objObjDist;
-    bool inShadow;
-    //Lighting Variables
+    //For Point Calculate Light and Shadow Values Using Secondary Rays
+    color = curObject->color * kAmb;
+    for (unsigned int l = 0; l < scene.lights.size(); l++)
+    {
+        inShadow = false;
+        lColor = scene.lights[l]->color;
+        lVec = glm::normalize(scene.lights[l]->loc - Pt);
+        H = glm::normalize(view + lVec);
+        shiftedPt = Pt + lVec * EPSILON;
+        secondaryRay = new Ray(shiftedPt, lVec);
+        secondaryIntersect = getFirstHit(secondaryRay, scene);
+        //If the light ray encounters intersects another object
+        if (secondaryIntersect->hit)
+        {
+            secondaryPt = secondaryRay->origin + secondaryIntersect->t * secondaryRay->direction;
+            lDist = calcDist3D(scene.lights[l]->loc, shiftedPt);
+            objObjDist = calcDist3D(shiftedPt, secondaryPt);
+            if (objObjDist < lDist)
+            {
+                inShadow = true;
+            }
+        }
+        if (!inShadow)
+        {
+            color += (curObject->color * calcDiffuse(kDiff, objNormal, lVec) * lColor);
+            color += (curObject->color * calcSpecular(kSpec, H, objNormal, alpha) * lColor);
+        }
+    }
+    return color;
+}
+
+//Function that recursively calculates
+glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * intersect, int rCount)
+{
+    if (rCount <= 0)
+    {
+        return glm::vec3(0, 0, 0);
+    }
+    
+}
+
+//Change to write to image and move color calculations out of method
+void renderScene(int width, int height, Scene scene)
+{
+    //Camera Intersection Variables
+    Ray * ray = new Ray();
+    Intersection * curIntersect;
+    //Total Color
     glm::vec3 color;
-    float kAmb;
-    float kDiff;
-    float kSpec;
-    float kRough;
-    float alpha;
-    glm::vec3 objNormal;
-    glm::vec3 H;
-    glm::vec3 view;
     //Image File Variables
     Image * outImage = new Image(width, height);
     const string fileName = "output.png";
@@ -274,60 +345,13 @@ void renderSceneBlinnPhong(int width, int height, Scene scene)
     {
         for (unsigned int y = 0; y < height; y++)
         {
-            //Need to change when rays are not coming from camera anymore. It will be negation of ray.
             ray = Ray::getCamRay(scene.cam, width, height, x, y);
             curIntersect = getFirstHit(ray, scene);
             color = glm::vec3(0, 0, 0);
-            //Checks if camera ray hits an object in the scene
-            //printf("curIntersect Hit:%d\n", curIntersect->hit);
+            //Change this so all the color stuff goes on in raytrace and the setpixel uses that output color value.
             if (curIntersect->hit)
             {
-                //Current Object's Material Properties
-                curObject = curIntersect->curObject;
-                kAmb = curObject->material->ambient;
-                kDiff = curObject->material->diffuse;
-                kSpec = curObject->material->specular;
-                kRough = curObject->material->roughness;
-                alpha = calculateAlpha(kRough);
-                view = ray->direction;
-                if (curObject->type == "Plane")
-                {
-                    objNormal = static_cast<Plane*>(curObject)->normal;
-                }
-                else
-                {
-                    objNormal = Pt - static_cast<Sphere*>(curObject)->center;
-                }
-                //For Point Calculate Light and Shadow Values Using Secondary Rays
-                Pt = ray->origin + curIntersect->t * ray->direction;
-                color = curObject->color * curObject->material->ambient;
-                for (unsigned int l = 0; l < scene.lights.size(); l++)
-                {
-                    inShadow = false;
-                    lColor = scene.lights[l]->color;
-                    lVec = glm::normalize(scene.lights[l]->loc - Pt);
-                    H = glm::normalize(view + lVec);
-                    shiftedPt = Pt + lVec * EPSILON;
-                    secondaryRay = new Ray(shiftedPt, lVec);
-                    secondaryIntersect = getFirstHit(secondaryRay, scene);
-                    //If the light ray encounters intersects another object
-                    if (secondaryIntersect->hit)
-                    {
-                        secondaryPt = secondaryRay->origin + secondaryIntersect->t * secondaryRay->direction;
-                        lDist = calcDist3D(scene.lights[l]->loc, shiftedPt);
-                        objObjDist = calcDist3D(shiftedPt, secondaryPt);
-                        if (objObjDist < lDist)
-                        {
-                            inShadow = true;
-                        }
-                    }
-                    if (inShadow == false)
-                    {
-                        color += (curObject->color * calcDiffuse(kDiff, objNormal, lVec) * lColor);
-                        color += (curObject->color * calcSpecular(kSpec, H, objNormal, alpha) * lColor);
-                    }
-                    
-                }
+                color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect);
                 outImage->setPixel(x, y, (unsigned char)clamp((color.x * 255.f), 0, 255), (unsigned char)clamp((color.y * 255.f), 0, 255), (unsigned char)clamp((color.z * 255.f), 0, 255));
             }
             else
@@ -339,7 +363,6 @@ void renderSceneBlinnPhong(int width, int height, Scene scene)
     }
     outImage->writeToFile(fileName);
 }
-
 
 int main(int argc, char *argv[])
 {
@@ -377,7 +400,7 @@ int main(int argc, char *argv[])
         printScene(argv[2], scene);
         
     }
-    if (mode == PIXELRAY)
+    if (mode == PRINTRAYS)
     {
         //Prints specific ray for given pixel on screen
         ss = getString(argv[2]);
@@ -417,7 +440,7 @@ int main(int argc, char *argv[])
         if (!altBrdfFlag)
         {
             //Render Blinn-Phong
-            renderSceneBlinnPhong(wWidth, wHeight, scene);
+            renderScene(wWidth, wHeight, scene);
         }
         else
         {

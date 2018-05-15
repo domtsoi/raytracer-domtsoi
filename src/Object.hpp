@@ -30,6 +30,7 @@ public:
     virtual void printObjectColor() = 0;
     
     virtual float checkIntersect(const Ray * ray) = 0;
+    
 };
 
 #endif /* Object_hpp */

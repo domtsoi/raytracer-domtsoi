@@ -44,3 +44,8 @@ float Plane::checkIntersect(const Ray * ray)
     float num = distance - glm::dot(ray->origin, normal);
     return num/den;
 }
+
+glm::vec3 Plane::getNormal()
+{
+    return normalize(normal);
+}
