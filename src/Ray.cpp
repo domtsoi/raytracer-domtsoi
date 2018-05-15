@@ -43,17 +43,13 @@ Ray * Ray::getCamRay(Camera * camera, int width, int height, int pX, int pY)
     glm::vec3 w = -l;
     glm::vec3 direction = glm::vec3(0, 0, 0);
     glm::vec3 nDirection = glm::vec3(0, 0, 0);
-    ray->origin.x = camera->loc.x;
-    ray->origin.y = camera->loc.y;
-    ray->origin.z = camera->loc.z;
+    ray->origin = glm::vec3(camera->loc.x, camera->loc.y, camera->loc.z);
     Us = (-1/2.0) + ((pX + 0.5) / width);
     Vs = (-1/2.0) + ((pY + 0.5) / height);
     //std::cout << "Us: " << Us << " Vs: " << Vs << std::endl;
     Ws = -1;
     direction = (Us * u + Vs *v + Ws * w);
     nDirection = normalize(direction);
-    ray->direction.x = nDirection.x;
-    ray->direction.y = nDirection.y;
-    ray->direction.z = nDirection.z;
+    ray->direction = glm::vec3(nDirection.x, nDirection.y, nDirection.z);
     return ray;
 }

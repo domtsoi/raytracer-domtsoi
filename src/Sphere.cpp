@@ -66,5 +66,6 @@ float Sphere::checkIntersect(const Ray * ray)
 
 glm::vec3 Sphere::getNormal(glm::vec3 point)
 {
+    std::cout << "point x: " << point.x << std::endl;
     return normalize(point - center);
 }

@@ -249,6 +249,8 @@ float calcSpecular(float kSpec, glm::vec3 H, glm::vec3 normal, float alpha)
     return kSpec * pow(clamped, alpha);
 }
 
+// Something either in get objectNormal or CalculateLocalColor is causing this program to get a exc bad access. Code works til later on sphere normal
+//calculation where the point handed to the getNormal(point) function is null. 
 glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
 {
     if (curObject->type == "Plane")
@@ -322,14 +324,28 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
     return color;
 }
 
-Ray * calculateReflectionRay()
+//TO DO:change both the reflection and refraction calculators to return a new ray instea of ray direction
+glm::vec3 calculateReflectionRay(Ray * rayIn, glm::vec3 normal)
 {
-    
+    return normalize(rayIn->direction -  2 * glm::dot(rayIn->direction, normal) * normal);
 }
 
-Ray * calculateRefractionRay()
+glm::vec3 calculateRefractionRay(Ray * rayIn, glm::vec3 normal, float ior)
 {
-    
+    float n1 = 1.0;
+    float n2 = ior;
+    glm::vec3 negatedNormal;
+    glm::vec3 direction = rayIn->direction;
+    if (dot(rayIn->direction, normal) < 0)
+    {
+        return normalize((n1/n2) * (direction + dot(-direction, normal) * normal) - normal * (float)sqrt(1 - pow((double)(n1/n2), 2) * (1 - pow((double)dot(-direction, normal) , 2))));
+    }
+    else
+    {
+        std::swap(n1, n2);
+        negatedNormal = -normal;
+        return normalize((n1/n2) * (direction + dot(-direction, negatedNormal) * negatedNormal) - negatedNormal * (float)sqrt(1 - pow((double)(n1/n2), 2) * (1 - pow((double)dot(-direction, negatedNormal) , 2))));
+    }
 }
 
 //Function that recursively calculates
@@ -351,15 +367,20 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     float filter = curObject->color.w;
     //local
     color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
-    //reflection
-    Ray * reflectRay;
+    //reflection calculations
+    Ray * reflectRay = new Ray();
+    glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
+    glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
+    reflectRay->direction = calculateReflectionRay(ray, curObjectNormal);
+    reflectRay->origin = Pt + reflectRay->direction * EPSILON;
     Intersection * refIntersect = getFirstHit(reflectRay, scene);
-    glm::vec3 curObjNormal = getObjectNormal(curObject, <#glm::vec3 point#>);
-    color += raytrace(scene, <#Ray *ray#>, <#Intersection *curIntersect#>, rCount--) * curObject->material->reflection * (1 - filter) * curObjectColor;
-    //refraction
-    Ray * refractRay;
+    color += raytrace(scene, reflectRay, refIntersect, rCount--) * curObject->material->reflection * (1 - filter) * curObjectColor;
+    //refraction calculations
+    Ray * refractRay = new Ray();
+    refractRay->direction = calculateRefractionRay(ray, curObjectNormal, curObject->material->ior);
+    refractRay->origin = Pt + refractRay->direction * EPSILON;
     refIntersect = getFirstHit(refractRay, scene);
-    color += raytrace(scene, <#Ray *ray#>, <#Intersection *curIntersect#>, rCount--) * filter  * curObjectColor;
+    color += raytrace(scene, refractRay, refIntersect, rCount--) * filter  * curObjectColor;
     return color;
 }
 
