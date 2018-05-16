@@ -216,6 +216,7 @@ glm::vec4 Parse::parsePigment(std::stringstream & s)
     //s.unget();
     s >> check;
     s >> check;
+    cout << "this is the check: " << check << endl;
     if (check == "rgb")
     {
         temp = Parse::parseVector(s);
