@@ -293,7 +293,7 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
     float lDist;
     float objObjDist;
     //For Point Calculate Light and Shadow Values Using Secondary Rays
-    color = curObject->color * kAmb;
+    color = glm::vec3(curObject->color * kAmb);
     for (unsigned int l = 0; l < scene.lights.size(); l++)
     {
         inShadow = false;
@@ -336,10 +336,12 @@ glm::vec3 calculateRefractionRay(Ray * rayIn, glm::vec3 normal, float ior)
     float n2 = ior;
     glm::vec3 negatedNormal;
     glm::vec3 direction = rayIn->direction;
+    //entering
     if (dot(rayIn->direction, normal) < 0)
     {
         return normalize((n1/n2) * (direction - dot(direction, normal) * normal) - normal * (float)sqrt(1 - pow((double)(n1/n2), 2) * (1 - pow((double)dot(-direction, normal) , 2))));
     }
+    //exiting
     else
     {
         //Swap and negate normal
@@ -352,6 +354,10 @@ glm::vec3 calculateRefractionRay(Ray * rayIn, glm::vec3 normal, float ior)
 //Function that recursively calculates
 glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCount)
 {
+    glm::vec3 totalColor;
+    glm::vec3 localColor;
+    glm::vec3 reflectColor;
+    glm::vec3 refractColor;
     glm::vec3 color;
     if (rCount <= 0)
     {
@@ -379,20 +385,28 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         reflectRay->origin = Pt + reflectRay->direction * EPSILON;
         refIntersect = getFirstHit(reflectRay, scene);
         color += raytrace(scene, reflectRay, refIntersect, rCount - 1) * curObject->material->reflection * (1 - filter) * curObjectColor;
+        delete reflectRay;
     }
     //refraction calculations
-    cout << "current object's refraction value: " << curObject->material->refraction << endl;
-    cout << "current object's filter value: " << curObject->color.w << endl;
-    if (curObject->material->refraction != 0)
+    if (curObject->color.w != 0)
     {
         Ray * refractRay = new Ray();
         glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
-        cout << "Current ior: " << curObject->material->ior << endl;
         glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
         refractRay->direction = calculateRefractionRay(ray, curObjectNormal, curObject->material->ior);
         refractRay->origin = Pt + refractRay->direction * EPSILON;
         refIntersect = getFirstHit(refractRay, scene);
-        color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter  * curObjectColor;
+        //entering
+        if (dot(ray->direction, curObjectNormal) < 0)
+        {
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter  * curObjectColor;
+        }
+        //exiting
+        else
+        {
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter;
+        }
+        delete refractRay;
     }
     return color;
 }

@@ -37,8 +37,7 @@ void Parse::parseFile(std::stringstream & s, Scene & scene)
         {
             scene.objects.push_back(parseTriangle(s));
         }
-    }
-    
+    }    
 }
 
 //parses camera portion of string stream and returns camera pointer
@@ -129,13 +128,34 @@ Plane * Parse::parsePlane(std::stringstream & s)
 {
     string temp;
     Plane * plane = new Plane();
+    //cout << "new plane " << endl;
     s.ignore(numeric_limits<streamsize>::max(), '{');
     plane->normal = parseVector(s);
     s >> temp;
     s >> temp;
     plane->distance = stof(temp);
-    plane->color = parsePigment(s);
-    plane->material = parseFinish(s);
+    while (s >> temp)
+    {
+        if (temp == "pigment")
+        {
+            plane->color = parsePigment(s);
+            //s.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        if (temp == "finish")
+        {
+            plane->material = parseFinish(s);
+            s.unget();
+        }
+        if (temp == "translate")
+        {
+            //
+        }
+        if (temp == "}")
+        {
+            plane->type = "Plane";
+            return plane;
+        }
+    }
     //cout << "plane ambient" << plane->material->ambient << endl;
     plane->type = "Plane";
     return plane;
@@ -163,6 +183,7 @@ Material * Parse::parseFinish(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     while (s >> temp)
     {
+        //cout << "Parse finish temp: " << temp << endl;
         if (temp == "ambient")
         {
             s >> temp;
@@ -216,7 +237,7 @@ glm::vec4 Parse::parsePigment(std::stringstream & s)
     //s.unget();
     s >> check;
     s >> check;
-    cout << "this is the check: " << check << endl;
+    //cout << "this is the check: " << check << endl;
     if (check == "rgb")
     {
         temp = Parse::parseVector(s);
