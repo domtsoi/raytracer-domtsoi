@@ -129,10 +129,10 @@ void checkArgs(int argc, int mode)
     }
     if (mode == RENDER)
     {
-        if (argc != 5 || argc != 6)
+        if (argc != 5 || argc != 6 || argc != 7 || argc != 8 || argc != 9)
         {
             std::cerr << "ERROR: Incorrect arguments for Raytracer - render" << std::endl;
-            std::cerr << "Please use format: raytrace render <input_filename> <width> <height> [-altbrdf]" << std::endl;
+            std::cerr << "Please use format: raytrace render <input_filename> <width> <height> [-altbrdf] [-fresnel] [-beers]" << std::endl;
             exit(1);
         }
     }
@@ -351,6 +351,11 @@ glm::vec3 calculateRefractionRay(Ray * rayIn, glm::vec3 normal, float ior)
     }
 }
 
+//float calculateFresnel(glm::vec3 normal, )
+//{
+    
+//}
+
 //Function that recursively calculates
 glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCount)
 {
@@ -363,7 +368,6 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     {
         return glm::vec3(0, 0, 0);
     }
-    //Change this so all the color stuff goes on in raytrace and the setpixel uses that output color value.
     if (!curIntersect->hit)
     {
         return glm::vec3(0, 0, 0);
@@ -376,15 +380,21 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
     Intersection * refIntersect;
+    //cout << "current object's reflection value: " << curObject->material->reflection << endl;
     if (curObject->material->reflection != 0)
     {
         Ray * reflectRay = new Ray();
         glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
         glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
+        float fresnelReflectance = 0.0f;
+        if (scene.fresnel)
+        {
+            //fresnelReflectance = calculateFresnel(curObjectNormal, );
+        }
         reflectRay->direction = calculateReflectionRay(ray, curObjectNormal);
         reflectRay->origin = Pt + reflectRay->direction * EPSILON;
         refIntersect = getFirstHit(reflectRay, scene);
-        color += raytrace(scene, reflectRay, refIntersect, rCount - 1) * curObject->material->reflection * (1 - filter) * curObjectColor;
+        color += raytrace(scene, reflectRay, refIntersect, rCount - 1) * curObject->material->reflection * (1 - filter) * curObjectColor + filter * fresnelReflectance;
         delete reflectRay;
     }
     //refraction calculations
@@ -432,9 +442,15 @@ void renderScene(int width, int height, Scene scene)
             color = glm::vec3(0, 0, 0);
             color = raytrace(scene, ray, curIntersect, MAXRECURSE);
             outImage->setPixel(x, y, (unsigned char)clamp((color.x * 255.f), 0, 255), (unsigned char)clamp((color.y * 255.f), 0, 255), (unsigned char)clamp((color.z * 255.f), 0, 255));
+            delete curIntersect;
         }
     }
     outImage->writeToFile(fileName);
+}
+
+void cleanUp()
+{
+    
 }
 
 int main(int argc, char *argv[])
@@ -449,7 +465,7 @@ int main(int argc, char *argv[])
     int pixelY;
     int mode;
     bool altBrdfFlag = false;
-    string brdfString;
+    string argString;
     Scene scene;
     Ray * ray;
     //Check to see if command line args are correct
@@ -501,12 +517,26 @@ int main(int argc, char *argv[])
         ss = getString(argv[2]);
         wWidth =  atoi(argv[3]);
         wHeight = atoi(argv[4]);
-        if (argc == 6)
+        string superSample = "=";
+
+        for (int i = 0; i < argc; i++)
         {
-            brdfString = argv[5];
-            if (brdfString == "-altbrdf")
+            argString = argv[i];
+            if (argString == "-altbrdf")
             {
                 altBrdfFlag = true;
+            }
+            else if (argString == "-beers")
+            {
+                scene.beers = true;
+            }
+            else if (argString == "-fresnel")
+            {
+                scene.fresnel = true;
+            }
+            else if ((argString.find(superSample) != std::string::npos))
+            {
+                scene.superSample = stoi(argString.substr(4, string::npos));
             }
         }
         Parse::parseFile(ss, scene);
@@ -521,6 +551,7 @@ int main(int argc, char *argv[])
             
         }
     }
-    ss = getString(argv[2]);
+    //ss = getString(argv[2]);
+    cleanUp();
     return 0;
 }
