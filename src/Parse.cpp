@@ -12,30 +12,36 @@ void Parse::parseFile(std::stringstream & s, Scene & scene)
     while (s >> temp)
     {
         //checks for comment lines then ignores them.
+        cout << "File Temp String: " << temp << endl;
         if (temp[0] == '/' && temp[1] == '/')
         {
             s.ignore(numeric_limits<streamsize>::max(), '\n');
         }
         //checks for keywords and calls associated functions
-        if (temp == "camera")
+        else if (temp == "camera")
         {
             scene.cam = parseCam(s);
         }
-        if (temp == "light_source")
+        else if (temp == "light_source")
         {
             scene.lights.push_back(parseLight(s));
         }
-        if (temp == "sphere")
+        else if (temp == "sphere")
         {
             scene.objects.push_back(parseSphere(s));
         }
-        if (temp == "plane")
+        else if (temp == "plane")
         {
             scene.objects.push_back(parsePlane(s));
         }
-        if (temp == "triangle")
+        else if (temp == "triangle")
         {
             scene.objects.push_back(parseTriangle(s));
+        }
+        else
+        {
+            std::cerr << "ERROR: Unexpected Parse File token" << std::endl;
+            exit(10);
         }
     }    
 }
@@ -54,21 +60,26 @@ Camera * Parse::parseCam(std::stringstream & s)
         {
             camera->loc = parseVector(s);
         }
-        if (temp == "up")
+        else if (temp == "up")
         {
             camera->up = parseVector(s);
         }
-        if (temp == "right")
+        else if (temp == "right")
         {
             camera->right = parseVector(s);
         }
-        if (temp == "look_at")
+        else if (temp == "look_at")
         {
             camera->lookAt = parseVector(s);
         }
-        if (temp == "}")
+        else if (temp == "}")
         {
             return camera;
+        }
+        else
+        {
+            std::cerr << "ERROR: Unexpected Parse Camera Token" << std::endl;
+            exit(11);
         }
     }
     return camera;
@@ -90,6 +101,7 @@ Sphere * Parse::parseSphere(std::stringstream & s)
 {
     string temp;
     Sphere * sphere = new Sphere();
+    glm::mat4 ModelMat = glm::mat4(1.0f);
     s.ignore(numeric_limits<streamsize>::max(), '{');
     sphere->center = parseVector(s);
     s >> temp;
@@ -104,19 +116,31 @@ Sphere * Parse::parseSphere(std::stringstream & s)
             sphere->color = parsePigment(s);
             //s.ignore(numeric_limits<streamsize>::max(), '\n');
         }
-        if (temp == "finish")
+        else if (temp == "finish")
         {
             sphere->material = parseFinish(s);
-            s.unget();
         }
-        if (temp == "translate")
+        else if (temp == "translate")
         {
-            sphere->translate = Parse::parseVector(s);
+            
         }
-        if (temp == "}")
+        else if (temp == "scale")
+        {
+            
+        }
+        else if (temp == "rotate")
+        {
+            
+        }
+        else if (temp == "}")
         {
             sphere->type = "Sphere";
             return sphere;
+        }
+        else
+        {
+            std::cerr << "ERROR: Unexpected Parse Sphere Token" << std::endl;
+            exit(12);
         }
     }
     sphere->type = "Sphere";
@@ -128,6 +152,7 @@ Plane * Parse::parsePlane(std::stringstream & s)
 {
     string temp;
     Plane * plane = new Plane();
+    glm::mat4 ModelMat = glm::mat4(1.0f);
     //cout << "new plane " << endl;
     s.ignore(numeric_limits<streamsize>::max(), '{');
     plane->normal = parseVector(s);
@@ -141,19 +166,31 @@ Plane * Parse::parsePlane(std::stringstream & s)
             plane->color = parsePigment(s);
             //s.ignore(numeric_limits<streamsize>::max(), '\n');
         }
-        if (temp == "finish")
+        else if (temp == "finish")
         {
             plane->material = parseFinish(s);
-            s.unget();
         }
-        if (temp == "translate")
+        else if (temp == "translate")
         {
-            //
+            
         }
-        if (temp == "}")
+        else if (temp == "scale")
+        {
+            
+        }
+        else if (temp == "rotate")
+        {
+            
+        }
+        else if (temp == "}")
         {
             plane->type = "Plane";
             return plane;
+        }
+        else
+        {
+            std::cerr << "ERROR: Unexpected Parse Plane Token" << std::endl;
+            exit(13);
         }
     }
     //cout << "plane ambient" << plane->material->ambient << endl;
@@ -165,13 +202,46 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
 {
     string temp;
     Triangle * triangle = new Triangle();
+    glm::mat4 ModelMat = glm::mat4(1.0f);
     s.ignore(numeric_limits<streamsize>::max(), '{');
     triangle->vertA = parseVector(s);
     triangle->vertB = parseVector(s);
     triangle->vertC = parseVector(s);
-    triangle->color = parsePigment(s);
-    triangle->material = parseFinish(s);
-    triangle->type = "triangle";
+    while (s >> temp)
+    {
+        if (temp == "pigment")
+        {
+            triangle->color = parsePigment(s);
+            //s.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+        else if (temp == "finish")
+        {
+            triangle->material = parseFinish(s);
+        }
+        else if (temp == "translate")
+        {
+            
+        }
+        else if (temp == "scale")
+        {
+            
+        }
+        else if (temp == "rotate")
+        {
+            
+        }
+        else if (temp == "}")
+        {
+            triangle->type = "Triangle";
+            return triangle;
+        }
+        else
+        {
+            std::cerr << "ERROR: Unexpected Parse Triangle Token" << std::endl;
+            exit(14);
+        }
+    }
+
     return triangle;
 }
 
@@ -183,7 +253,7 @@ Material * Parse::parseFinish(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     while (s >> temp)
     {
-        //cout << "Parse finish temp: " << temp << endl;
+        cout << "Parse finish temp: " << temp << endl;
         if (temp == "ambient")
         {
             s >> temp;
@@ -222,6 +292,11 @@ Material * Parse::parseFinish(std::stringstream & s)
         else if (temp == "}")
         {
             return material;
+        }
+        else
+        {
+            std::cerr << "ERROR: Unexpected Parse Finish Token" << std::endl;
+            exit(15);
         }
     }
     return material;

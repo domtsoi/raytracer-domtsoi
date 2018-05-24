@@ -351,10 +351,20 @@ glm::vec3 calculateRefractionRay(Ray * rayIn, glm::vec3 normal, float ior)
     }
 }
 
-//float calculateFresnel(glm::vec3 normal, )
-//{
-    
-//}
+float calculateFresnel(glm::vec3 normal, Ray * ray, glm::vec3 view, float ior)
+{
+    glm::vec3 negatedNorm;
+    float Fo = pow((ior - 1.0f),2)/pow(ior + 1.0f, 2);
+    if (dot(normal, ray->direction) < 0)
+    {
+        return Fo + (1.0f -Fo) * pow((1- dot(normal, view)), 5);
+    }
+    else
+    {
+        negatedNorm = -normal;
+        return Fo + (1.0f -Fo) * pow((1- dot(negatedNorm, view)), 5);
+    }
+}
 
 //Function that recursively calculates
 glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCount)
@@ -376,17 +386,19 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     Material * curMaterial = curObject->material;
     glm::vec3 curObjectColor = glm::vec3(curObject->color.x, curObject->color.y, curObject->color.z);
     float filter = curObject->color.w;
+    float fresnelReflectance;
     //local
     color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
     Intersection * refIntersect;
     //cout << "current object's reflection value: " << curObject->material->reflection << endl;
-    if (curObject->material->reflection != 0)
+    //May need to be changed
+    if (curObject->material->reflection != 0 || (curObject->color.w > 0 && scene.fresnel))
     {
         Ray * reflectRay = new Ray();
         glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
         glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
-        float fresnelReflectance = 0.0f;
+        fresnelReflectance = 0.0f;
         if (scene.fresnel)
         {
             //fresnelReflectance = calculateFresnel(curObjectNormal, );
