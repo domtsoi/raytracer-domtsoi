@@ -391,8 +391,7 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
     Intersection * refIntersect;
-    //cout << "current object's reflection value: " << curObject->material->reflection << endl;
-    //May need to be changed
+    //if statement qualifier may need to be changed
     if (curObject->material->reflection != 0 || (curObject->color.w > 0 && scene.fresnel))
     {
         Ray * reflectRay = new Ray();
@@ -401,7 +400,7 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         fresnelReflectance = 0.0f;
         if (scene.fresnel)
         {
-            //fresnelReflectance = calculateFresnel(curObjectNormal, );
+            fresnelReflectance = calculateFresnel(curObjectNormal, ray, -ray->direction, curObject->material->ior);
         }
         reflectRay->direction = calculateReflectionRay(ray, curObjectNormal);
         reflectRay->origin = Pt + reflectRay->direction * EPSILON;
@@ -530,7 +529,7 @@ int main(int argc, char *argv[])
         wWidth =  atoi(argv[3]);
         wHeight = atoi(argv[4]);
         string superSample = "=";
-
+        scene.superSample = 1;
         for (int i = 0; i < argc; i++)
         {
             argString = argv[i];
@@ -563,7 +562,6 @@ int main(int argc, char *argv[])
             
         }
     }
-    //ss = getString(argv[2]);
     cleanUp();
     return 0;
 }

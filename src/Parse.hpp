@@ -2,6 +2,9 @@
 #include <sstream>
 #include <iostream>
 #include <limits>
+#include <vector>
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include "Camera.hpp"
 #include "LightSource.hpp"
@@ -10,7 +13,8 @@
 #include "Triangle.hpp"
 #include "Scene.hpp"
 #include "Material.hpp"
-#include <glm/glm.hpp>
+#include "Transform.hpp"
+
 
 class Parse
 {

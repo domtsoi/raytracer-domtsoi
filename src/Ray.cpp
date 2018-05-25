@@ -35,21 +35,23 @@ Ray * Ray::getCamRay(Camera * camera, int width, int height, int pX, int pY)
 {
     Ray * ray = new Ray();
     float Us, Vs, Ws;
-    glm::vec3 lookat = glm::vec3(camera->lookAt.x, camera->lookAt.y, camera->lookAt.z);
-    glm::vec3 location = glm::vec3(camera->loc.x, camera->loc.y, camera->loc.z);
-    glm::vec3 u = glm::vec3(camera->right.x, camera->right.y, camera->right.z);
-    glm::vec3 v = glm::vec3(camera->up.x, camera->up.y, camera->up.z);
+    glm::vec3 lookat = camera->lookAt;
+    glm::vec3 location = camera->loc;
+    glm::vec3 u = camera->right;
+    glm::vec3 v = camera->up;
     glm::vec3 l = glm::vec3(normalize(lookat - location));
     glm::vec3 w = -l;
     glm::vec3 direction = glm::vec3(0, 0, 0);
     glm::vec3 nDirection = glm::vec3(0, 0, 0);
-    ray->origin = glm::vec3(camera->loc.x, camera->loc.y, camera->loc.z);
+    //ray->origin = glm::vec3(camera->loc.x, camera->loc.y, camera->loc.z);
+    ray->origin = camera->loc;
     Us = (-1/2.0) + ((pX + 0.5) / width);
     Vs = (-1/2.0) + ((pY + 0.5) / height);
     //std::cout << "Us: " << Us << " Vs: " << Vs << std::endl;
     Ws = -1;
     direction = (Us * u + Vs *v + Ws * w);
     nDirection = normalize(direction);
-    ray->direction = glm::vec3(nDirection.x, nDirection.y, nDirection.z);
+    //ray->direction = glm::vec3(nDirection.x, nDirection.y, nDirection.z);
+    ray->direction = nDirection;
     return ray;
 }

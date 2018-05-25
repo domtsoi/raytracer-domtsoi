@@ -1,5 +1,6 @@
 #include "Parse.hpp"
-#include <glm/glm.hpp>
+//#include <vector>
+//#include <glm/glm.hpp>
 
 using namespace std;
 
@@ -11,8 +12,8 @@ void Parse::parseFile(std::stringstream & s, Scene & scene)
     //loop through substrings in stringstream
     while (s >> temp)
     {
+        //cout << "File Temp String: " << temp << endl;
         //checks for comment lines then ignores them.
-        cout << "File Temp String: " << temp << endl;
         if (temp[0] == '/' && temp[1] == '/')
         {
             s.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -96,12 +97,44 @@ Light * Parse::parseLight(std::stringstream & s)
     return light;
 }
 
+glm::mat4 initModelMat(vector<Transform *> transforms)
+{
+    string tcheck;
+    glm::mat4 modelMat = glm::mat4(1.0f);
+    for (int i = 0; i < transforms.size(); i++)
+    {
+        Transform * curTransform = transforms[i];
+        if (curTransform->type == "translate")
+        {
+            glm::mat4 translate = glm::translate(curTransform->quantity);
+            modelMat = translate * modelMat;
+        }
+        else if (curTransform->type == "scale")
+        {
+            glm::mat4 scale = glm::scale(curTransform->quantity);
+            modelMat = scale * modelMat;
+        }
+        else if (curTransform->type == "rotate")
+        {
+            glm::mat4 Rotation = glm::mat4(1.f);
+            Rotation = glm::rotate(glm::mat4(1.f), glm::radians(curTransform->quantity.z), glm::vec3(0, 0, 1)) * Rotation;
+            Rotation = glm::rotate(glm::mat4(1.f), glm::radians(curTransform->quantity.y), glm::vec3(0, 1, 0)) * Rotation;
+            Rotation = glm::rotate(glm::mat4(1.f), glm::radians(curTransform->quantity.x), glm::vec3(1, 0, 0)) * Rotation;
+            modelMat = Rotation * modelMat;
+        }
+    }
+    return modelMat;
+}
+
 //parses sphere portion of string stream and returns sphere pointer
 Sphere * Parse::parseSphere(std::stringstream & s)
 {
     string temp;
     Sphere * sphere = new Sphere();
-    glm::mat4 ModelMat = glm::mat4(1.0f);
+    glm::mat4 modelMat;
+    glm::mat4 inverseModelMat;
+    glm::mat4 normalMat;
+    std::vector<Transform *> transforms;
     s.ignore(numeric_limits<streamsize>::max(), '{');
     sphere->center = parseVector(s);
     s >> temp;
@@ -114,7 +147,6 @@ Sphere * Parse::parseSphere(std::stringstream & s)
         if (temp == "pigment")
         {
             sphere->color = parsePigment(s);
-            //s.ignore(numeric_limits<streamsize>::max(), '\n');
         }
         else if (temp == "finish")
         {
@@ -122,18 +154,32 @@ Sphere * Parse::parseSphere(std::stringstream & s)
         }
         else if (temp == "translate")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "translate";
+            transforms.push_back(t);
         }
         else if (temp == "scale")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "scale";
+            transforms.push_back(t);
         }
         else if (temp == "rotate")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "rotate";
+            transforms.push_back(t);
         }
         else if (temp == "}")
         {
+            modelMat = initModelMat(transforms);
+            inverseModelMat = glm::inverse(modelMat);
+            sphere->inverseModelMat = inverseModelMat;
+            normalMat = glm::transpose(inverseModelMat);
+            sphere->normalMat = normalMat;
             sphere->type = "Sphere";
             return sphere;
         }
@@ -143,6 +189,11 @@ Sphere * Parse::parseSphere(std::stringstream & s)
             exit(12);
         }
     }
+    modelMat = initModelMat(transforms);
+    inverseModelMat = glm::inverse(modelMat);
+    sphere->inverseModelMat = inverseModelMat;
+    normalMat = glm::transpose(inverseModelMat);
+    sphere->normalMat = normalMat;
     sphere->type = "Sphere";
     return sphere;
 }
@@ -152,7 +203,10 @@ Plane * Parse::parsePlane(std::stringstream & s)
 {
     string temp;
     Plane * plane = new Plane();
-    glm::mat4 ModelMat = glm::mat4(1.0f);
+    glm::mat4 modelMat;
+    glm::mat4 inverseModelMat;
+    glm::mat4 normalMat;
+    std::vector<Transform *> transforms;
     //cout << "new plane " << endl;
     s.ignore(numeric_limits<streamsize>::max(), '{');
     plane->normal = parseVector(s);
@@ -164,7 +218,6 @@ Plane * Parse::parsePlane(std::stringstream & s)
         if (temp == "pigment")
         {
             plane->color = parsePigment(s);
-            //s.ignore(numeric_limits<streamsize>::max(), '\n');
         }
         else if (temp == "finish")
         {
@@ -172,18 +225,37 @@ Plane * Parse::parsePlane(std::stringstream & s)
         }
         else if (temp == "translate")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "translate";
+            transforms.push_back(t);
         }
         else if (temp == "scale")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "scale";
+            transforms.push_back(t);
         }
         else if (temp == "rotate")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "rotate";
+            transforms.push_back(t);
         }
         else if (temp == "}")
         {
+            plane->type = "plane";
+            return plane;
+        }
+        else if (temp == "}")
+        {
+            modelMat = initModelMat(transforms);
+            inverseModelMat = glm::inverse(modelMat);
+            plane->inverseModelMat = inverseModelMat;
+            normalMat = glm::transpose(inverseModelMat);
+            plane->normalMat = normalMat;
             plane->type = "Plane";
             return plane;
         }
@@ -194,6 +266,11 @@ Plane * Parse::parsePlane(std::stringstream & s)
         }
     }
     //cout << "plane ambient" << plane->material->ambient << endl;
+    modelMat = initModelMat(transforms);
+    inverseModelMat = glm::inverse(modelMat);
+    plane->inverseModelMat = inverseModelMat;
+    normalMat = glm::transpose(inverseModelMat);
+    plane->normalMat = normalMat;
     plane->type = "Plane";
     return plane;
 }
@@ -202,7 +279,10 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
 {
     string temp;
     Triangle * triangle = new Triangle();
-    glm::mat4 ModelMat = glm::mat4(1.0f);
+    glm::mat4 modelMat;
+    glm::mat4 inverseModelMat;
+    glm::mat4 normalMat;
+    std::vector<Transform *> transforms;
     s.ignore(numeric_limits<streamsize>::max(), '{');
     triangle->vertA = parseVector(s);
     triangle->vertB = parseVector(s);
@@ -212,7 +292,6 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
         if (temp == "pigment")
         {
             triangle->color = parsePigment(s);
-            //s.ignore(numeric_limits<streamsize>::max(), '\n');
         }
         else if (temp == "finish")
         {
@@ -220,18 +299,32 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
         }
         else if (temp == "translate")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "translate";
+            transforms.push_back(t);
         }
         else if (temp == "scale")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "scale";
+            transforms.push_back(t);
         }
         else if (temp == "rotate")
         {
-            
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "rotate";
+            transforms.push_back(t);
         }
         else if (temp == "}")
         {
+            modelMat = initModelMat(transforms);
+            inverseModelMat = glm::inverse(modelMat);
+            triangle->inverseModelMat = inverseModelMat;
+            normalMat = glm::transpose(inverseModelMat);
+            triangle->normalMat = normalMat;
             triangle->type = "Triangle";
             return triangle;
         }
@@ -241,7 +334,12 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
             exit(14);
         }
     }
-
+    modelMat = initModelMat(transforms);
+    inverseModelMat = glm::inverse(modelMat);
+    triangle->inverseModelMat = inverseModelMat;
+    normalMat = glm::transpose(inverseModelMat);
+    triangle->normalMat = normalMat;
+    triangle->type = "Triangle";
     return triangle;
 }
 
@@ -253,7 +351,7 @@ Material * Parse::parseFinish(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     while (s >> temp)
     {
-        cout << "Parse finish temp: " << temp << endl;
+        //cout << "Parse finish temp: " << temp << endl;
         if (temp == "ambient")
         {
             s >> temp;
