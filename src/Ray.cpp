@@ -31,9 +31,10 @@ void Ray::printRay()
 }
 
 //Need to clean this code up. put x, y, z components in vec3() initializers
-Ray * Ray::getCamRay(Camera * camera, int width, int height, int pX, int pY)
+Ray * Ray::getCamRay(Scene scene, int width, int height, int pX, int pY, int m, int n)
 {
     Ray * ray = new Ray();
+    Camera * camera = scene.cam;
     float Us, Vs, Ws;
     glm::vec3 lookat = camera->lookAt;
     glm::vec3 location = camera->loc;
@@ -43,15 +44,13 @@ Ray * Ray::getCamRay(Camera * camera, int width, int height, int pX, int pY)
     glm::vec3 w = -l;
     glm::vec3 direction = glm::vec3(0, 0, 0);
     glm::vec3 nDirection = glm::vec3(0, 0, 0);
-    //ray->origin = glm::vec3(camera->loc.x, camera->loc.y, camera->loc.z);
     ray->origin = camera->loc;
-    Us = (-1/2.0) + ((pX + 0.5) / width);
-    Vs = (-1/2.0) + ((pY + 0.5) / height);
+    Us = (-1/2.0) + ((pX * scene.superSample + m + 0.5) / (width * scene.superSample));
+    Vs = (-1/2.0) + ((pY * scene.superSample + n + 0.5) / (height * scene.superSample));
     //std::cout << "Us: " << Us << " Vs: " << Vs << std::endl;
     Ws = -1;
     direction = (Us * u + Vs *v + Ws * w);
     nDirection = normalize(direction);
-    //ray->direction = glm::vec3(nDirection.x, nDirection.y, nDirection.z);
     ray->direction = nDirection;
     return ray;
 }

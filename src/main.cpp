@@ -178,6 +178,7 @@ void printScene(string file, Scene scene)
 }
 
 //Prints the ray for a given screen x and y
+/*
 Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, string file)
 {
     Ray * ray = new Ray();
@@ -187,6 +188,7 @@ Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, stri
     ray->printRay();
     return ray;
 }
+*/
 
 Intersection * getFirstHit(Ray * ray, Scene scene)
 {
@@ -432,12 +434,27 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     return color;
 }
 
+glm::vec3 getColor(Scene scene, int width, int height, int pX, int pY)
+{
+    glm::vec3 color = glm::vec3(0, 0, 0);
+    Intersection * curIntersect;
+    for (int m = 0; m < scene.superSample; m++) {
+        for (int n = 0; n < scene.superSample; n++) {
+            Ray * camRay = Ray::getCamRay(scene, width, height, pX, pY, m, n);
+            curIntersect = getFirstHit(camRay, scene);
+            color += raytrace(scene, camRay, curIntersect, MAXRECURSE);
+        }
+    }
+    color /= (scene.superSample * scene.superSample);
+    
+    color.r = round(glm::clamp(color.r, 0.f, 1.f) * 255.f);
+    color.g = round(glm::clamp(color.g, 0.f, 1.f) * 255.f);
+    color.b = round(glm::clamp(color.b, 0.f, 1.f) * 255.f);
+}
+
 //Change to write to image and move color calculations out of method
 void renderScene(int width, int height, Scene scene)
 {
-    //Camera Intersection Variables
-    Ray * ray = new Ray();
-    Intersection * curIntersect;
     //Total Color
     glm::vec3 color;
     //Image File Variables
@@ -448,12 +465,11 @@ void renderScene(int width, int height, Scene scene)
     {
         for (unsigned int y = 0; y < height; y++)
         {
-            ray = Ray::getCamRay(scene.cam, width, height, x, y);
-            curIntersect = getFirstHit(ray, scene);
-            color = glm::vec3(0, 0, 0);
-            color = raytrace(scene, ray, curIntersect, MAXRECURSE);
-            outImage->setPixel(x, y, (unsigned char)clamp((color.x * 255.f), 0, 255), (unsigned char)clamp((color.y * 255.f), 0, 255), (unsigned char)clamp((color.z * 255.f), 0, 255));
-            delete curIntersect;
+            //ray = Ray::getCamRay(scene, width, height, x, y);
+            //curIntersect = getFirstHit(ray, scene);
+            //color = raytrace(scene, ray, curIntersect, MAXRECURSE);
+            color = getColor(scene, width, height, x, y);
+            outImage->setPixel(x, y, (unsigned char)color.x, (unsigned char)color.y, (unsigned char)color.z);
         }
     }
     outImage->writeToFile(fileName);
@@ -509,7 +525,8 @@ int main(int argc, char *argv[])
         pixelX = atoi(argv[5]);
         pixelY = atoi(argv[6]);
         Parse::parseFile(ss, scene);
-        printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
+        //Disabled
+        //printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
         
     }
     if (mode == FIRSTHIT)
@@ -520,7 +537,7 @@ int main(int argc, char *argv[])
         pixelX = atoi(argv[5]);
         pixelY = atoi(argv[6]);
         Parse::parseFile(ss, scene);
-        ray = printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
+        //ray = printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
         getFirstHit(ray, scene);
     }
     if (mode == RENDER)
