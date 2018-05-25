@@ -450,6 +450,7 @@ glm::vec3 getColor(Scene scene, int width, int height, int pX, int pY)
     color.r = round(glm::clamp(color.r, 0.f, 1.f) * 255.f);
     color.g = round(glm::clamp(color.g, 0.f, 1.f) * 255.f);
     color.b = round(glm::clamp(color.b, 0.f, 1.f) * 255.f);
+    return color;
 }
 
 //Change to write to image and move color calculations out of method

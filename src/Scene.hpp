@@ -12,7 +12,7 @@
 #include <vector>
 #include "Camera.hpp"
 #include "LightSource.hpp"
-#include "Object.hpp"
+class Object;
 
 class Scene
 {
