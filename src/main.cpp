@@ -394,7 +394,8 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     //reflection calculations
     Intersection * refIntersect;
     //if statement qualifier may need to be changed
-    if (curObject->material->reflection != 0 || (curObject->color.w > 0 && scene.fresnel))
+    cout << " curObject Material - reflection: " << curObject->material->reflection << endl;
+    if (curObject->material->reflection != 0 || (filter > 0 && scene.fresnel))
     {
         Ray * reflectRay = new Ray();
         glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
@@ -411,7 +412,7 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         delete reflectRay;
     }
     //refraction calculations
-    if (curObject->color.w != 0)
+    if (filter != 0)
     {
         Ray * refractRay = new Ray();
         glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
@@ -422,12 +423,12 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         //entering
         if (dot(ray->direction, curObjectNormal) < 0)
         {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter  * curObjectColor;
+            //color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter  * curObjectColor;
         }
         //exiting
         else
         {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter;
+            //color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter;
         }
         delete refractRay;
     }

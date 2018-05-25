@@ -381,11 +381,13 @@ Material * Parse::parseFinish(std::stringstream & s)
         {
             s >> temp;
             material->reflection = stof(temp);
+            cout << "setting reflection to: " << material->reflection << endl;
         }
         else if (temp == "refraction")
         {
             s >> temp;
             material->reflection = stof(temp);
+            //cout << "setting refraction to: " << material->reflection << endl;
         }
         else if (temp == "}")
         {
