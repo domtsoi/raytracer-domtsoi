@@ -393,8 +393,7 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
     Intersection * refIntersect;
-    //if statement qualifier may need to be changed
-    cout << " curObject Material - reflection: " << curObject->material->reflection << endl;
+    cout << "filter value: " << filter << endl;
     if (curObject->material->reflection != 0 || (filter > 0 && scene.fresnel))
     {
         Ray * reflectRay = new Ray();
@@ -420,15 +419,23 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         refractRay->direction = calculateRefractionRay(ray, curObjectNormal, curObject->material->ior);
         refractRay->origin = Pt + refractRay->direction * EPSILON;
         refIntersect = getFirstHit(refractRay, scene);
+        if (refIntersect->hit == false)
+        {
+            return glm::vec3(0, 0, 0);
+        }
+        glm::vec3 refPt = refractRay->origin + refIntersect->t * refractRay->direction;
+        float rDist = calcDist3D(Pt, refPt);
+        glm::vec3 absorb = (1.0f - refIntersect->curObject->color) * (0.15f) * - rDist;
+        glm::vec3 attenuation = glm::vec3( exp(absorb.x), exp(absorb.y), exp(absorb.z));
         //entering
         if (dot(ray->direction, curObjectNormal) < 0)
         {
-            //color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter  * curObjectColor;
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter  * curObjectColor;
         }
         //exiting
         else
         {
-            //color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter;
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter;
         }
         delete refractRay;
     }
