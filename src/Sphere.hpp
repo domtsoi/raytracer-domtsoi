@@ -20,8 +20,6 @@ class Sphere:public Object
 public:
     glm::vec3 translate;
     glm::vec3 center;
-    glm::mat4 inverseModelMat;
-    glm::mat4 normalMat;
     float radius;
     void printInfo();
     void printObjectType();

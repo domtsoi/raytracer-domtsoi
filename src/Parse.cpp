@@ -144,7 +144,7 @@ Sphere * Parse::parseSphere(std::stringstream & s)
     sphere->radius = stof(temp);
     while (s >> temp)
     {
-        cout << "cur sphere temp: " << temp << endl;
+        //cout << "cur sphere temp: " << temp << endl;
         if (temp == "pigment")
         {
             sphere->color = parsePigment(s);
@@ -377,19 +377,18 @@ Material * Parse::parseFinish(std::stringstream & s)
         {
             s >> temp;
             material->ior = stof(temp);
-            cout << "ior being added: " << material->ior << endl;
+            //cout << "ior being added: " << material->ior << endl;
         }
         else if (temp == "reflection")
         {
             s >> temp;
             material->reflection = stof(temp);
-            cout << "setting reflection to: " << material->reflection << endl;
+            //cout << "setting reflection to: " << material->reflection << endl;
         }
         else if (temp == "refraction")
         {
             s >> temp;
             material->refraction = stof(temp);
-            //cout << "setting refraction to: " << material->reflection << endl;
         }
         else if (temp == "}")
         {
@@ -411,10 +410,8 @@ glm::vec4 Parse::parsePigment(std::stringstream & s)
     glm::vec4 temp2;
     string check;
     s.ignore(numeric_limits<streamsize>::max(), '{');
-    //s.unget();
     s >> check;
     s >> check;
-    //cout << "this is the check: " << check << endl;
     if (check == "rgb")
     {
         temp = Parse::parseVector(s);
@@ -422,9 +419,9 @@ glm::vec4 Parse::parsePigment(std::stringstream & s)
     }
     else if (check == "rgbf")
     {
-        cout << "parsing rbgf" << endl;
+        //cout << "parsing rbgf" << endl;
         temp2 = Parse::parseVector4(s);
-        cout << "current filter value: " << temp2.w << endl;
+        //cout << "current filter value: " << temp2.w << endl;
     }
     s.ignore(numeric_limits<streamsize>::max(), '}');
     return temp2;

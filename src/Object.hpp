@@ -23,6 +23,10 @@ public:
     
     std::string type;
     
+    glm::mat4 inverseModelMat;
+    
+    glm::mat4 normalMat;
+    
     virtual void printInfo() = 0;
     
     virtual void printObjectType() = 0;

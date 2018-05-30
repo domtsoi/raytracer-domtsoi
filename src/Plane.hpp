@@ -19,8 +19,6 @@ class Plane:public Object
 public:
     glm::vec3 normal;
     float distance;
-    glm::mat4 inverseModelMat;
-    glm::mat4 normalMat;
     void printInfo();
     void printObjectType();
     void printObjectColor();
