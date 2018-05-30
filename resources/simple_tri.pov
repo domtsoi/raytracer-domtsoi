@@ -39,11 +39,11 @@ triangle {
   <0,-1.3, 0 >,
   <1, -.3,0 >
   pigment {color rgb <0.65, 0.4, 0.4>}
-  finish {ambient 0.3 diffuse 0.4}
+  finish {ambient 0.3 diffuse 0.4 }
 }
 
 
 plane {<0, 1, 0>, -4
   pigment {color rgb <0.2, 0.2, 0.8>}
-  finish {ambient 0.3 diffuse 0.8}
+  finish {ambient 0.3 diffuse 0.8 }
 }

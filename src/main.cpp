@@ -391,11 +391,7 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     glm::vec3 reflectColor;
     glm::vec3 refractColor;
     glm::vec3 color;
-    if (rCount <= 0)
-    {
-        return glm::vec3(0, 0, 0);
-    }
-    if (!curIntersect->hit)
+    if (rCount <= 0 ||!curIntersect->hit)
     {
         return glm::vec3(0, 0, 0);
     }
@@ -423,7 +419,7 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         reflectRay->direction = calculateReflectionRay(ray, worldNormal);
         reflectRay->origin = Pt + reflectRay->direction * EPSILON;
         refIntersect = getFirstHit(reflectRay, scene);
-        color += raytrace(scene, reflectRay, refIntersect, rCount - 1) * curObject->material->reflection * (1 - filter) * curObjectColor + filter * fresnelReflectance;
+        color += raytrace(scene, reflectRay, refIntersect, rCount - 1) * curObjectColor * (curObject->material->reflection * (1 - filter)  + filter * fresnelReflectance);
         delete reflectRay;
     }
     //refraction calculations
@@ -457,12 +453,12 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         //entering w/o beers Broken reflection in *** this *** first case
         if (dot(ray->direction, curObjectNormal) < 0 && scene.beers == false)
         {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter  * curObjectColor * (1 - fresnelReflectance);
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * curObjectColor * (filter * (1 - fresnelReflectance));
         }
         //entering w/ beers ***COLOR BECOMES WHITE ****
         else if (dot(ray->direction, curObjectNormal) < 0 && scene.beers == true)
         {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter  * attenuation * (1 - fresnelReflectance);
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * attenuation * (filter * (1 - fresnelReflectance));
         }
         //exiting
         else

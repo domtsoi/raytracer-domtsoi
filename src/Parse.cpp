@@ -4,6 +4,8 @@
 
 using namespace std;
 
+//*** CHANGE POINTERS TO REFERENCES LATER !!!!!!!!!!!!***************
+
 //Parses the file stream of the given .pov file
 void Parse::parseFile(std::stringstream & s, Scene & scene)
 {
@@ -97,7 +99,7 @@ Light * Parse::parseLight(std::stringstream & s)
     return light;
 }
 
-glm::mat4 initModelMat(vector<Transform *> transforms)
+glm::mat4 initModelMat(const vector<Transform *> &transforms)
 {
     string tcheck;
     glm::mat4 modelMat = glm::mat4(1.0f);
@@ -349,49 +351,53 @@ Material * Parse::parseFinish(std::stringstream & s)
 {
     string temp;
     Material * material = new Material();
-    s.ignore(numeric_limits<streamsize>::max(), '{');
-    while (s >> temp)
+    std::stringstream newstream;
+    std::stringbuf buf;
+    s.get(buf, '}');
+    newstream << buf.str();
+    newstream.ignore(numeric_limits<streamsize>::max(), '{');
+    while (newstream >> temp)
     {
-        //cout << "Parse finish temp: " << temp << endl;
         if (temp == "ambient")
         {
-            s >> temp;
+            newstream >> temp;
             material->ambient = stof(temp);
         }
         else if (temp == "diffuse")
         {
-            s >> temp;
+            newstream >> temp;
             material->diffuse = stof(temp);
         }
         else if (temp == "specular")
         {
-            s >> temp;
+            newstream >> temp;
             material->specular = stof(temp);
         }
         else if (temp == "roughness")
         {
-            s >> temp;
+            newstream >> temp;
             material->roughness = stof(temp);
         }
         else if (temp == "ior")
         {
-            s >> temp;
+            newstream >> temp;
             material->ior = stof(temp);
             //cout << "ior being added: " << material->ior << endl;
         }
         else if (temp == "reflection")
         {
-            s >> temp;
+            newstream >> temp;
             material->reflection = stof(temp);
             //cout << "setting reflection to: " << material->reflection << endl;
         }
         else if (temp == "refraction")
         {
-            s >> temp;
+            newstream >> temp;
             material->refraction = stof(temp);
         }
         else if (temp == "}")
         {
+            s.ignore(numeric_limits<streamsize>::max(), '}');
             return material;
         }
         else
@@ -400,6 +406,7 @@ Material * Parse::parseFinish(std::stringstream & s)
             exit(15);
         }
     }
+    s.ignore(numeric_limits<streamsize>::max(), '}');
     return material;
 }
 
