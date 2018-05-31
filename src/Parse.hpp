@@ -5,6 +5,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 #include "Camera.hpp"
 #include "LightSource.hpp"

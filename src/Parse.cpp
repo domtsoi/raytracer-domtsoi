@@ -183,6 +183,7 @@ Sphere * Parse::parseSphere(std::stringstream & s)
             sphere->inverseModelMat = inverseModelMat;
             normalMat = glm::transpose(inverseModelMat);
             sphere->normalMat = normalMat;
+            //std::cout << "sphere mat: " << glm::to_string(normalMat) << std::endl;
             sphere->type = "Sphere";
             return sphere;
         }
@@ -249,11 +250,6 @@ Plane * Parse::parsePlane(std::stringstream & s)
         }
         else if (temp == "}")
         {
-            plane->type = "plane";
-            return plane;
-        }
-        else if (temp == "}")
-        {
             modelMat = initModelMat(transforms);
             inverseModelMat = glm::inverse(modelMat);
             plane->inverseModelMat = inverseModelMat;
@@ -268,7 +264,6 @@ Plane * Parse::parsePlane(std::stringstream & s)
             exit(13);
         }
     }
-    //cout << "plane ambient" << plane->material->ambient << endl;
     modelMat = initModelMat(transforms);
     inverseModelMat = glm::inverse(modelMat);
     plane->inverseModelMat = inverseModelMat;
@@ -328,6 +323,7 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
             triangle->inverseModelMat = inverseModelMat;
             normalMat = glm::transpose(inverseModelMat);
             triangle->normalMat = normalMat;
+            //std::cout << glm::to_string(normalMat) << std::endl;
             triangle->type = "Triangle";
             return triangle;
         }

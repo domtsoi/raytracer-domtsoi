@@ -399,7 +399,7 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     Material * curMaterial = curObject->material;
     glm::vec3 curObjectColor = glm::vec3(curObject->color.x, curObject->color.y, curObject->color.z);
     float filter = curObject->color.w;
-    float fresnelReflectance;
+    float fresnelReflectance = 0.0f;
     //local
     color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
@@ -411,7 +411,6 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
         glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
         glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(curObjectNormal, 0.0f)));
-        fresnelReflectance = 0.0f;
         if (scene.fresnel)
         {
             fresnelReflectance = calculateFresnel(worldNormal, ray, -ray->direction, curObject->material->ior);
@@ -450,7 +449,6 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
             glm::vec3 absorb = glm::vec3(1.0f - refIntersect->curObject->color) * (0.15f) * -rDist;
             attenuation = glm::vec3( exp(absorb.x), exp(absorb.y), exp(absorb.z));
         }
-        //entering w/o beers Broken reflection in *** this *** first case
         if (dot(ray->direction, curObjectNormal) < 0 && scene.beers == false)
         {
             color += raytrace(scene, refractRay, refIntersect, rCount - 1) * curObjectColor * (filter * (1 - fresnelReflectance));
@@ -463,7 +461,7 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         //exiting
         else
         {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * filter * (1 - fresnelReflectance);
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * (filter * (1 - fresnelReflectance));
         }
         delete refractRay;
     }
@@ -502,9 +500,6 @@ void renderScene(int width, int height, Scene scene)
     {
         for (unsigned int y = 0; y < height; y++)
         {
-            //ray = Ray::getCamRay(scene, width, height, x, y);
-            //curIntersect = getFirstHit(ray, scene);
-            //color = raytrace(scene, ray, curIntersect, MAXRECURSE);
             color = getColor(scene, width, height, x, y);
             outImage->setPixel(x, y, (unsigned char)color.x, (unsigned char)color.y, (unsigned char)color.z);
         }
