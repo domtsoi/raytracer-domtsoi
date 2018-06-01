@@ -274,7 +274,6 @@ glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
     {
         glm::vec3 newPoint = glm::vec3(curObject->inverseModelMat * glm::vec4(point, 1.0f));
         return static_cast<Sphere*>(curObject)->getNormal(newPoint);
-        //return static_cast<Sphere*>(curObject)->getNormal(point);
     }
     else if (curObject->type == "Box")
     {
