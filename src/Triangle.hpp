@@ -18,7 +18,6 @@ public:
     glm::vec3 vertA;
     glm::vec3 vertB;
     glm::vec3 vertC;
-    
     float checkIntersect(const Ray * ray);
     float calcT(const Ray * ray, float detA);
     float calcBeta(const Ray * ray, float detA);

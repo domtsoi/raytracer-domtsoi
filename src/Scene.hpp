@@ -22,6 +22,7 @@ public:
     std::vector<Object *> objects;
     bool fresnel;
     bool beers;
+    bool sds;
     int superSample;
 };
 

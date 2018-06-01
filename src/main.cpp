@@ -276,6 +276,11 @@ glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
         return static_cast<Sphere*>(curObject)->getNormal(newPoint);
         //return static_cast<Sphere*>(curObject)->getNormal(point);
     }
+    else if (curObject->type == "Box")
+    {
+        glm::vec3 newPoint = glm::vec3(curObject->inverseModelMat * glm::vec4(point, 1.0f));
+        return static_cast<Box*>(curObject)->getNormal(newPoint);
+    }
     else
     {
         return static_cast<Triangle*>(curObject)->getNormal();
@@ -338,6 +343,16 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
         }
     }
     return color;
+}
+
+glm::vec3 calculateReflectColor()
+{
+    
+}
+
+glm::vec3 calculateRefractColor()
+{
+    
 }
 
 //TO DO:change both the reflection and refraction calculators to return a new ray instea of ray direction
@@ -404,7 +419,6 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
     color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
     Intersection * refIntersect;
-    //cout << "filter value: " << filter << endl;
     if (curObject->material->reflection != 0 || (filter > 0 && scene.fresnel))
     {
         Ray * reflectRay = new Ray();
@@ -431,7 +445,6 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
         glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
         glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(curObjectNormal, 0.0f)));
         refractRay->direction = calculateRefractionRay(ray, worldNormal, curObject->material->ior);
-        //refractRay->direction = calculateRefractionRay(ray, curObjectNormal, curObject->material->ior);
         refractRay->origin = Pt + refractRay->direction * EPSILON;
         refIntersect = getFirstHit(refractRay, scene);
         //If refraction doesnt intersect anything return black
@@ -593,6 +606,10 @@ int main(int argc, char *argv[])
             else if (argString == "-fresnel")
             {
                 scene.fresnel = true;
+            }
+            else if (argString == "-sds")
+            {
+                scene.sds = true;
             }
             else if ((argString.find(superSample) != std::string::npos))
             {

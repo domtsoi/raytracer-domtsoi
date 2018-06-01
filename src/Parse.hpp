@@ -15,6 +15,7 @@
 #include "Scene.hpp"
 #include "Material.hpp"
 #include "Transform.hpp"
+#include "Box.hpp"
 
 
 class Parse
@@ -37,6 +38,8 @@ public:
     static Plane * parsePlane(std::stringstream & Stream);
     
     static Triangle * parseTriangle(std::stringstream & Stream);
+    
+    static Box * parseBox(std::stringstream & Stream);
     
     static glm::vec4 parsePigment(std::stringstream & Stream);
     

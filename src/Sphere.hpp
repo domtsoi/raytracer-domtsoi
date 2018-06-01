@@ -18,7 +18,6 @@
 class Sphere:public Object
 {
 public:
-    glm::vec3 translate;
     glm::vec3 center;
     float radius;
     void printInfo();

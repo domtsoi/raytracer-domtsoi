@@ -41,6 +41,10 @@ void Parse::parseFile(std::stringstream & s, Scene & scene)
         {
             scene.objects.push_back(parseTriangle(s));
         }
+        else if (temp == "box")
+        {
+            scene.objects.push_back(parseBox(s));
+        }
         else
         {
             std::cerr << "ERROR: Unexpected Parse File token" << std::endl;
@@ -341,6 +345,72 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
     triangle->type = "Triangle";
     return triangle;
 }
+
+Box * Parse::parseBox(std::stringstream &s)
+{
+    string temp;
+    Box * box = new Box();
+    glm::mat4 modelMat;
+    glm::mat4 inverseModelMat;
+    glm::mat4 normalMat;
+    std::vector<Transform *> transforms;
+    s.ignore(numeric_limits<streamsize>::max(), '{');
+    box->min = parseVector(s);
+    box->max = parseVector(s);
+    while (s >> temp)
+    {
+        if (temp == "pigment")
+        {
+            box->color = parsePigment(s);
+        }
+        else if (temp == "finish")
+        {
+            box->material = parseFinish(s);
+        }
+        else if (temp == "translate")
+        {
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "translate";
+            transforms.push_back(t);
+        }
+        else if (temp == "scale")
+        {
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "scale";
+            transforms.push_back(t);
+        }
+        else if (temp == "rotate")
+        {
+            Transform * t = new Transform();
+            t->quantity = parseVector(s);
+            t->type = "rotate";
+            transforms.push_back(t);
+        }
+        else if (temp == "}")
+        {
+            modelMat = initModelMat(transforms);
+            inverseModelMat = glm::inverse(modelMat);
+            box->inverseModelMat = inverseModelMat;
+            normalMat = glm::transpose(inverseModelMat);
+            box->type = "Box";
+            return box;
+        }
+        else
+        {
+            std::cerr << "ERROR: Unexpected Parse Box Token" << std::endl;
+            exit(14);
+        }
+    }
+    modelMat = initModelMat(transforms);
+    inverseModelMat = glm::inverse(modelMat);
+    box->inverseModelMat = inverseModelMat;
+    normalMat = glm::transpose(inverseModelMat);
+    box->type = "Box";
+    return box;
+}
+
 
 //parses finish portion of string stream and returns a Material pointer
 Material * Parse::parseFinish(std::stringstream & s)
