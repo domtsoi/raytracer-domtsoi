@@ -12,6 +12,8 @@
 #include <vector>
 #include "Camera.hpp"
 #include "LightSource.hpp"
+
+class BBNode;
 class Object;
 
 class Scene
@@ -20,6 +22,8 @@ public:
     Camera * cam;
     std::vector<Light *> lights;
     std::vector<Object *> objects;
+    BBNode * root;
+    bool altbrdf;
     bool fresnel;
     bool beers;
     bool sds;

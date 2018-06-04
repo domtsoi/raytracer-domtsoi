@@ -18,6 +18,7 @@
 #include "Image.h"
 #include "Material.hpp"
 #include "Object.hpp"
+#include "BoundingBoxNode.hpp"
 
 //#include "Application.hpp"
 #define RAYCAST  1
@@ -535,7 +536,6 @@ int main(int argc, char *argv[])
     int pixelX;
     int pixelY;
     int mode;
-    bool altBrdfFlag = false;
     string argString;
     Scene scene;
     Ray * ray;
@@ -596,7 +596,7 @@ int main(int argc, char *argv[])
             argString = argv[i];
             if (argString == "-altbrdf")
             {
-                altBrdfFlag = true;
+                scene.altbrdf = true;
             }
             else if (argString == "-beers")
             {
@@ -616,16 +616,17 @@ int main(int argc, char *argv[])
             }
         }
         Parse::parseFile(ss, scene);
-        if (!altBrdfFlag)
-        {
-            //Render Blinn-Phong
-            renderScene(wWidth, wHeight, scene);
-        }
-        else
+        if (scene.altbrdf)
         {
             //render Cook-Torrance (EXTRA CREDIT)
-            
         }
+        if (scene.sds)
+        {
+            scene.root = scene.root->recursiveTreeBuild(scene.objects, 0);
+            renderScene(wWidth, wHeight, scene);
+        }
+        //Render Blinn-Phong
+        renderScene(wWidth, wHeight, scene);
     }
     cleanUp();
     return 0;
