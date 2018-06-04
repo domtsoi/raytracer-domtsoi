@@ -22,7 +22,11 @@ public:
     BBNode * rightChild = nullptr;
     Object * thisObject = nullptr;
     AABB boundingBox;
-    BBNode * recursiveTreeBuild(std::vector<Object *> objects, int axis);
+    void sortObjects(std::vector<Object *> objects, int axis);
+    void recursiveTreeBuild(std::vector<Object *> objects, int axis);
+    static bool sortX(Object * obj1, Object * obj2);
+    static bool sortY(Object * obj1, Object * obj2);
+    static bool sortZ(Object * obj1, Object * obj2);
 };
 
 #endif /* BoundingBoxNode_hpp */

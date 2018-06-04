@@ -10,9 +10,12 @@
 
 #include <stdio.h>
 #include <string>
-#include "Vector.hpp"
+#include <glm/glm.hpp>
+#include <vector>
+#include <algorithm>
 #include "Ray.hpp"
 #include "Material.hpp"
+#include "AxisAlignedBoundingBox.hpp"
 
 class Object
 {
@@ -25,7 +28,11 @@ public:
     
     glm::mat4 inverseModelMat;
     
+    glm::mat4 modelMat;
+    
     glm::mat4 normalMat;
+    
+    AABB boundingBox;
     
     virtual void printInfo() = 0;
     
@@ -34,7 +41,6 @@ public:
     virtual void printObjectColor() = 0;
     
     virtual float checkIntersect(const Ray * ray) = 0;
-    
 };
 
 #endif /* Object_hpp */

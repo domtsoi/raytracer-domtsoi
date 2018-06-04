@@ -15,6 +15,7 @@
 
 class BBNode;
 class Object;
+class Plane;
 
 class Scene
 {
@@ -22,12 +23,14 @@ public:
     Camera * cam;
     std::vector<Light *> lights;
     std::vector<Object *> objects;
+    std::vector<Object *> planes;
     BBNode * root;
     bool altbrdf;
     bool fresnel;
     bool beers;
     bool sds;
     int superSample;
+    void initBBTree();
 };
 
 #endif /* Scene_hpp */

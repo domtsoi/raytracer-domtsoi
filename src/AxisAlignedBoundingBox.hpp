@@ -10,14 +10,16 @@
 
 #include <stdio.h>
 #include <glm/glm.hpp>
+#include <vector>
+#include "Ray.hpp"
 
 class Object;
 
 class AABB
 {
+public:
     glm::vec3 min, max;
     
-public:
     void Reset(glm::vec3 pt) {
         min = max = pt;
     }
@@ -36,17 +38,13 @@ public:
         AddPoint(other.max);
     }
     
-    void createBox(Object * curObject)
-    {
-        if (curObject->type == "Triangle")
-        {
-            
-        }
-        else if (curObject->type == "Sphere")
-        {
-            
-        }
-    }
+    void createBox(Object * curObject);
+    
+    std::vector<glm::vec3> initVerts();
+    
+    void applyTransform(glm::mat4 modelMatrix);
+    
+    float checkIntersect(const Ray * ray);
 };
 
 #endif /* AxisAlignedBoundingBox_hpp */

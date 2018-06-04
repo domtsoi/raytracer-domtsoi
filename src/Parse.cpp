@@ -183,6 +183,7 @@ Sphere * Parse::parseSphere(std::stringstream & s)
         else if (temp == "}")
         {
             modelMat = initModelMat(transforms);
+            sphere->modelMat = modelMat;
             inverseModelMat = glm::inverse(modelMat);
             sphere->inverseModelMat = inverseModelMat;
             normalMat = glm::transpose(inverseModelMat);
@@ -198,6 +199,7 @@ Sphere * Parse::parseSphere(std::stringstream & s)
         }
     }
     modelMat = initModelMat(transforms);
+    sphere->modelMat = modelMat;
     inverseModelMat = glm::inverse(modelMat);
     sphere->inverseModelMat = inverseModelMat;
     normalMat = glm::transpose(inverseModelMat);
@@ -323,6 +325,7 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
         else if (temp == "}")
         {
             modelMat = initModelMat(transforms);
+            triangle->modelMat = modelMat;
             inverseModelMat = glm::inverse(modelMat);
             triangle->inverseModelMat = inverseModelMat;
             normalMat = glm::transpose(inverseModelMat);
@@ -338,6 +341,7 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
         }
     }
     modelMat = initModelMat(transforms);
+    triangle->modelMat = modelMat;
     inverseModelMat = glm::inverse(modelMat);
     triangle->inverseModelMat = inverseModelMat;
     normalMat = glm::transpose(inverseModelMat);
@@ -391,6 +395,7 @@ Box * Parse::parseBox(std::stringstream &s)
         else if (temp == "}")
         {
             modelMat = initModelMat(transforms);
+            box->modelMat = modelMat;
             inverseModelMat = glm::inverse(modelMat);
             box->inverseModelMat = inverseModelMat;
             normalMat = glm::transpose(inverseModelMat);
@@ -404,6 +409,7 @@ Box * Parse::parseBox(std::stringstream &s)
         }
     }
     modelMat = initModelMat(transforms);
+    box->modelMat = modelMat;
     inverseModelMat = glm::inverse(modelMat);
     box->inverseModelMat = inverseModelMat;
     normalMat = glm::transpose(inverseModelMat);

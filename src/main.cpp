@@ -199,26 +199,110 @@ Ray * transformRay(Ray * ray, Object * curObject)
     tRay->direction = glm::vec3(curObject->inverseModelMat * glm::vec4(ray->direction, 0.0f));
     return tRay;
 }
-//change this to have intersection normals. Transforms happen here. Transform before check for intersection
-Intersection * getFirstHit(Ray * ray, Scene scene)
+
+Intersection * getFirstHitBBTree(Ray * ray, BBNode * node)
 {
-    intersect = new Intersection();
+    Intersection * intersect = new Intersection();
     intersect->t = std::numeric_limits<float>::max();
     intersect->hit = false;
     float tempT = std::numeric_limits<float>::max();
-    for (unsigned int i = 0; i < scene.objects.size(); i++)
+    if (!node->boundingBox.checkIntersect(ray))
     {
-        Ray * tRay = transformRay(ray, scene.objects[i]);
-        tempT = scene.objects[i]->checkIntersect(tRay);
-        //tempT = scene.objects[i]->checkIntersect(ray);
+        return intersect;
+    }
+    if (node->thisObject)
+    {
+        Ray * tRay = transformRay(ray, node->thisObject);
+        tempT = node->thisObject->checkIntersect(tRay);
         if (tempT > EPSILON && tempT < intersect->t)
         {
             intersect->hit = true;
             intersect->t = tempT;
-            intersect->curObject = scene.objects[i];
+            intersect->curObject = node->thisObject;
+        }
+        return intersect;
+    }
+    Intersection * left;
+    Intersection * right;
+    left = getFirstHitBBTree(ray, node->leftChild);
+    right = getFirstHitBBTree(ray, node->rightChild);
+    if (left->hit == true && right->hit == true)
+    {
+        if (left->t < right->t)
+        {
+            return left;
+        }
+        else
+        {
+            return right;
         }
     }
-    return intersect;
+    else if (left->hit == true)
+    {
+        return left;
+    }
+    else if (right->hit == true)
+    {
+        return right;
+    }
+    else
+    {
+        return intersect;
+    }
+}
+
+//change this to have intersection normals. Transforms happen here. Transform before check for intersection
+Intersection * getFirstHit(Ray * ray, Scene scene)
+{
+    Intersection * intersect;
+    Intersection * planeIntersect;
+    if (scene.sds)
+    {
+        intersect = getFirstHitBBTree(ray, scene.root);
+        planeIntersect = new Intersection();
+        planeIntersect->t = std::numeric_limits<float>::max();
+        planeIntersect->hit = false;
+        float tempT = std::numeric_limits<float>::max();
+        for (unsigned int i = 0; i < scene.planes.size(); i++)
+        {
+            Ray * tRay = transformRay(ray, scene.planes[i]);
+            tempT = scene.planes[i]->checkIntersect(tRay);
+            if (tempT > EPSILON && tempT < intersect->t)
+            {
+                intersect->hit = true;
+                intersect->t = tempT;
+                intersect->curObject = scene.planes[i];
+            }
+        }
+        if (intersect->t < planeIntersect->t)
+        {
+            return intersect;
+        }
+        else
+        {
+            return planeIntersect;
+        }
+    }
+    else
+    {
+        intersect = new Intersection();
+        intersect->t = std::numeric_limits<float>::max();
+        intersect->hit = false;
+        float tempT = std::numeric_limits<float>::max();
+        for (unsigned int i = 0; i < scene.objects.size(); i++)
+        {
+            Ray * tRay = transformRay(ray, scene.objects[i]);
+            tempT = scene.objects[i]->checkIntersect(tRay);
+            //tempT = scene.objects[i]->checkIntersect(ray);
+            if (tempT > EPSILON && tempT < intersect->t)
+            {
+                intersect->hit = true;
+                intersect->t = tempT;
+                intersect->curObject = scene.objects[i];
+            }
+        }
+        return intersect;
+    }
 }
 
 //Move to Intersection class
@@ -345,6 +429,7 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
     return color;
 }
 
+//Eventually move reflect and refract code here
 glm::vec3 calculateReflectColor()
 {
     
@@ -622,7 +707,7 @@ int main(int argc, char *argv[])
         }
         if (scene.sds)
         {
-            scene.root = scene.root->recursiveTreeBuild(scene.objects, 0);
+            scene.initBBTree();
             renderScene(wWidth, wHeight, scene);
         }
         //Render Blinn-Phong
