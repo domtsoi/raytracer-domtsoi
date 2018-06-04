@@ -58,7 +58,7 @@ void BBNode::recursiveTreeBuild(std::vector<Object *> objects, int axis)
     if (objects.size() <= 1)
     {
         thisObject = objects[0];
-        std::cout << "Current object type when creating AABB node: " << thisObject->type << std::endl;
+        //std::cout << "Current object type when creating AABB node: " << thisObject->type << std::endl;
         boundingBox.createBox(thisObject);
         return;
     }
