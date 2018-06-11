@@ -357,12 +357,12 @@ glm::vec3 generateCosineWeightedPoint(int u, int v)
     float theta = 2.0f * M_PI * v;
     float x = radial * cos(theta);
     float y = radial * sin(theta);
-    return glm::vec3(x, y, sqrt(1 - u));
+    return glm::vec3(x, y, sqrt(1.0f - u));
 }
 
 glm::vec3 alignSampleVector(glm::vec3 sample, glm::vec3 up, glm::vec3 normal)
 {
-    float angle = acos(dot(up, normal));
+    float angle = acosf(dot(up, normal));
     glm::vec3 axis = cross(up, normal);
     glm::mat4 alignMatrix = glm::rotate(angle, axis);
     return glm::vec3(alignMatrix * glm::vec4(sample, 0.0f));
@@ -372,46 +372,45 @@ glm::vec3 calcAmbientGI(float kAmb, Scene scene, int giBounce, int recurseCount,
 {
     glm::vec3 ambient = glm::vec3(0, 0, 0);
     int numSamples;
-    int sampleIncrement;
+    int gridMax;
     if (giBounce == 0)
     {
-        numSamples = 0;
-        sampleIncrement = 0;
+        return ambient;
     }
     else if (giBounce == 1)
     {
         numSamples = 16;
-        sampleIncrement = 4;
+        gridMax = sqrt(numSamples);
     }
     else
     {
         numSamples = 64;
-        sampleIncrement = 8;
+        gridMax = sqrt(numSamples);
     }
     glm::vec3 samplePoint;
     float u, v;
     glm::vec3 up = glm::vec3(0, 0, 1);
     Ray sampleRay;
     Intersection bounceIntersect;
-    for (int i = 0; i < numSamples; i+= sampleIncrement)
+    for (int i = 0; i < gridMax; i++)
     {
-        for (int j = 0; j < numSamples; j+= sampleIncrement)
+        for (int j = 0; j < gridMax; j++)
         {
-            u = i * (rand()/(float)RAND_MAX);
-            v = j * (rand()/(float)RAND_MAX);
+            u = ((float)i / (float)gridMax) + ((rand()/(float)RAND_MAX) /(float)gridMax);
+            v = ((float)j / (float)gridMax) + ((rand()/(float)RAND_MAX) /(float)gridMax);
             sampleRay = Ray();
             samplePoint = generateCosineWeightedPoint(u, v);
             if (up == normal)
             {
-                sampleRay.direction = normalize(samplePoint - intersectPoint);
+                sampleRay.direction = samplePoint;
             }
             else if (up == -normal)
             {
-                sampleRay.direction = -normalize(samplePoint - intersectPoint);
+                sampleRay.direction = -samplePoint;
             }
             else
             {
-                sampleRay.direction = alignSampleVector(samplePoint - intersectPoint, up, normal);
+                sampleRay.direction = alignSampleVector(samplePoint, up, normal);
             }
             sampleRay.origin = intersectPoint + sampleRay.direction * EPSILON;
             bounceIntersect = getFirstHit(sampleRay, scene);
