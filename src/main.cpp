@@ -389,6 +389,7 @@ glm::vec3 calcAmbientGI(float kAmb, Scene scene, int giBounce, int recurseCount,
         sampleIncrement = 8;
     }
     glm::vec3 samplePoint;
+    float u, v;
     glm::vec3 up = glm::vec3(0, 0, 1);
     Ray sampleRay;
     Intersection bounceIntersect;
@@ -396,8 +397,10 @@ glm::vec3 calcAmbientGI(float kAmb, Scene scene, int giBounce, int recurseCount,
     {
         for (int j = 0; j < numSamples; j+= sampleIncrement)
         {
+            u = i * (rand()/(float)RAND_MAX);
+            v = j * (rand()/(float)RAND_MAX);
             sampleRay = Ray();
-            samplePoint = generateCosineWeightedPoint(i, j);
+            samplePoint = generateCosineWeightedPoint(u, v);
             if (up == normal)
             {
                 sampleRay.direction = normalize(samplePoint - intersectPoint);
