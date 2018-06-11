@@ -24,12 +24,15 @@ public:
     std::vector<Light *> lights;
     std::vector<Object *> objects;
     std::vector<Object *> planes;
+    std::vector<int> giSampleCounts;
     BBNode * root;
-    bool altbrdf;
-    bool fresnel;
-    bool beers;
-    bool sds;
-    int superSample;
+    bool altbrdf = false;
+    bool fresnel = false;
+    bool beers = false;
+    bool sds = false;
+    bool gi = false;
+    int giBounces = 0;
+    int superSample = 1;
     void initBBTree();
 };
 

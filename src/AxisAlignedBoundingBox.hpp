@@ -44,7 +44,7 @@ public:
     
     void applyTransform(glm::mat4 modelMatrix);
     
-    float checkIntersect(const Ray * ray);
+    float checkIntersect(const Ray ray);
 };
 
 #endif /* AxisAlignedBoundingBox_hpp */

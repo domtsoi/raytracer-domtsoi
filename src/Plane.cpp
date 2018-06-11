@@ -35,13 +35,13 @@ void Plane::printObjectColor()
 }
 
 //checks for an intersection with given ray. returns t value of intersection, or -1 if no intersection.
-float Plane::checkIntersect(const Ray * ray)
+float Plane::checkIntersect(const Ray ray)
 {
-    float den = glm::dot(ray->direction, normal);
+    float den = glm::dot(ray.direction, normal);
     if (!den) {
         return -1;
     }
-    float num = distance - glm::dot(ray->origin, normal);
+    float num = distance - glm::dot(ray.origin, normal);
     return num/den;
 }
 

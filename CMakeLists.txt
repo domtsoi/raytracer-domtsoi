@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # Name of the project
 project(raytrace)
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 # Use glob to get the list of all source files.
 file(GLOB_RECURSE SOURCES "src/*.cpp")

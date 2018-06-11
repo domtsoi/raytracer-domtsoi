@@ -36,12 +36,11 @@ void Sphere::printObjectColor()
 }
 
 //Checks for an intersection with given ray using quadratic formula. returns t value of intersection, or -1 if no intersection.
-float Sphere::checkIntersect(const Ray * ray)
+float Sphere::checkIntersect(const Ray ray)
 {
-    const glm::vec3 pc = (ray->origin - center);
-    
-    const float A = (glm::dot(ray->direction, ray->direction));
-    const float B = (glm::dot(ray->direction + ray->direction, pc));
+    const glm::vec3 pc = (ray.origin - center);
+    const float A = (glm::dot(ray.direction, ray.direction));
+    const float B = (glm::dot(ray.direction + ray.direction, pc));
     const float C = dot(pc, pc) - radius*radius;
     float det = B * B - 4 * A * C;
     

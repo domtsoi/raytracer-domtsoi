@@ -27,12 +27,16 @@
 #define FIRSTHIT 4
 #define RENDER 5
 #define MAXRECURSE 6
+#define GIBOUNCE 2
+#define PI 3.14159265358979323846
 
 using namespace std;
 //Global Variables
 Camera * camera;
 Intersection * intersect;
 const static float EPSILON = 0.001f;
+
+glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCount, int giBounce);
 
 //vector<Objects *> objects;
 //converts ifstream to string stream
@@ -192,19 +196,19 @@ Ray * printPixelRay(Camera * camera, int width, int height ,int pX, int pY, stri
 */
 
 //Gives transformed ray X DO NOT NORMALIZE X
-Ray * transformRay(Ray * ray, Object * curObject)
+Ray transformRay(Ray & ray, Object * curObject)
 {
-    Ray * tRay = new Ray();
-    tRay->origin = glm::vec3(curObject->inverseModelMat * glm::vec4(ray->origin, 1.0f));
-    tRay->direction = glm::vec3(curObject->inverseModelMat * glm::vec4(ray->direction, 0.0f));
+    Ray tRay = Ray();
+    tRay.origin = glm::vec3(curObject->inverseModelMat * glm::vec4(ray.origin, 1.0f));
+    tRay.direction = glm::vec3(curObject->inverseModelMat * glm::vec4(ray.direction, 0.0f));
     return tRay;
 }
 
-Intersection * getFirstHitBBTree(Ray * ray, BBNode * node)
+Intersection getFirstHitBBTree(Ray & ray, BBNode * node)
 {
-    Intersection * intersect = new Intersection();
-    intersect->t = std::numeric_limits<float>::max();
-    intersect->hit = false;
+    Intersection intersect = Intersection();
+    intersect.t = std::numeric_limits<float>::max();
+    intersect.hit = false;
     float tempT = std::numeric_limits<float>::max();
     if (!node->boundingBox.checkIntersect(ray))
     {
@@ -212,23 +216,23 @@ Intersection * getFirstHitBBTree(Ray * ray, BBNode * node)
     }
     if (node->thisObject)
     {
-        Ray * tRay = transformRay(ray, node->thisObject);
+        Ray tRay = transformRay(ray, node->thisObject);
         tempT = node->thisObject->checkIntersect(tRay);
-        if (tempT > EPSILON && tempT < intersect->t)
+        if (tempT > EPSILON && tempT < intersect.t)
         {
-            intersect->hit = true;
-            intersect->t = tempT;
-            intersect->curObject = node->thisObject;
+            intersect.hit = true;
+            intersect.t = tempT;
+            intersect.curObject = node->thisObject;
         }
         return intersect;
     }
-    Intersection * left;
-    Intersection * right;
+    Intersection left;
+    Intersection right;
     left = getFirstHitBBTree(ray, node->leftChild);
     right = getFirstHitBBTree(ray, node->rightChild);
-    if (left->hit == true && right->hit == true)
+    if (left.hit == true && right.hit == true)
     {
-        if (left->t < right->t)
+        if (left.t < right.t)
         {
             return left;
         }
@@ -237,11 +241,11 @@ Intersection * getFirstHitBBTree(Ray * ray, BBNode * node)
             return right;
         }
     }
-    else if (left->hit == true)
+    else if (left.hit == true)
     {
         return left;
     }
-    else if (right->hit == true)
+    else if (right.hit == true)
     {
         return right;
     }
@@ -252,29 +256,29 @@ Intersection * getFirstHitBBTree(Ray * ray, BBNode * node)
 }
 
 //change this to have intersection normals. Transforms happen here. Transform before check for intersection
-Intersection * getFirstHit(Ray * ray, Scene scene)
+Intersection getFirstHit(Ray & ray, Scene scene)
 {
-    Intersection * intersect;
-    Intersection * planeIntersect;
+    Intersection intersect;
+    Intersection planeIntersect;
     if (scene.sds)
     {
         intersect = getFirstHitBBTree(ray, scene.root);
-        planeIntersect = new Intersection();
-        planeIntersect->t = std::numeric_limits<float>::max();
-        planeIntersect->hit = false;
+        planeIntersect = Intersection();
+        planeIntersect.t = std::numeric_limits<float>::max();
+        planeIntersect.hit = false;
         float tempT = std::numeric_limits<float>::max();
         for (unsigned int i = 0; i < scene.planes.size(); i++)
         {
-            Ray * tRay = transformRay(ray, scene.planes[i]);
+            Ray tRay = transformRay(ray, scene.planes[i]);
             tempT = scene.planes[i]->checkIntersect(tRay);
-            if (tempT > EPSILON && tempT < intersect->t)
+            if (tempT > EPSILON && tempT < intersect.t)
             {
-                intersect->hit = true;
-                intersect->t = tempT;
-                intersect->curObject = scene.planes[i];
+                intersect.hit = true;
+                intersect.t = tempT;
+                intersect.curObject = scene.planes[i];
             }
         }
-        if (intersect->t < planeIntersect->t)
+        if (intersect.t < planeIntersect.t)
         {
             return intersect;
         }
@@ -285,20 +289,20 @@ Intersection * getFirstHit(Ray * ray, Scene scene)
     }
     else
     {
-        intersect = new Intersection();
-        intersect->t = std::numeric_limits<float>::max();
-        intersect->hit = false;
+        intersect = Intersection();
+        intersect.t = std::numeric_limits<float>::max();
+        intersect.hit = false;
         float tempT = std::numeric_limits<float>::max();
         for (unsigned int i = 0; i < scene.objects.size(); i++)
         {
-            Ray * tRay = transformRay(ray, scene.objects[i]);
+            Ray tRay = transformRay(ray, scene.objects[i]);
             tempT = scene.objects[i]->checkIntersect(tRay);
             //tempT = scene.objects[i]->checkIntersect(ray);
-            if (tempT > EPSILON && tempT < intersect->t)
+            if (tempT > EPSILON && tempT < intersect.t)
             {
-                intersect->hit = true;
-                intersect->t = tempT;
-                intersect->curObject = scene.objects[i];
+                intersect.hit = true;
+                intersect.t = tempT;
+                intersect.curObject = scene.objects[i];
             }
         }
         return intersect;
@@ -347,6 +351,74 @@ float calcSpecular(float kSpec, glm::vec3 H, glm::vec3 normal, float alpha)
     return kSpec * pow(clamped, alpha);
 }
 
+glm::vec3 generateCosineWeightedPoint(int u, int v)
+{
+    float radial = sqrt(u);
+    float theta = 2.0f * M_PI * v;
+    float x = radial * cos(theta);
+    float y = radial * sin(theta);
+    return glm::vec3(x, y, sqrt(1 - u));
+}
+
+glm::vec3 alignSampleVector(glm::vec3 sample, glm::vec3 up, glm::vec3 normal)
+{
+    float angle = acos(dot(up, normal));
+    glm::vec3 axis = cross(up, normal);
+    glm::mat4 alignMatrix = glm::rotate(angle, axis);
+    return glm::vec3(alignMatrix * glm::vec4(sample, 0.0f));
+}
+
+glm::vec3 calcAmbientGI(float kAmb, Scene scene, int giBounce, int recurseCount, glm::vec3 intersectPoint, glm::vec3 normal)
+{
+    glm::vec3 ambient = glm::vec3(0, 0, 0);
+    int numSamples;
+    int sampleIncrement;
+    if (giBounce == 0)
+    {
+        numSamples = 0;
+        sampleIncrement = 0;
+    }
+    else if (giBounce == 1)
+    {
+        numSamples = 16;
+        sampleIncrement = 4;
+    }
+    else
+    {
+        numSamples = 64;
+        sampleIncrement = 8;
+    }
+    glm::vec3 samplePoint;
+    glm::vec3 up = glm::vec3(0, 0, 1);
+    Ray sampleRay;
+    Intersection bounceIntersect;
+    for (int i = 0; i < numSamples; i+= sampleIncrement)
+    {
+        for (int j = 0; j < numSamples; j+= sampleIncrement)
+        {
+            sampleRay = Ray();
+            samplePoint = generateCosineWeightedPoint(i, j);
+            if (up == normal)
+            {
+                sampleRay.direction = normalize(samplePoint - intersectPoint);
+            }
+            else if (up == -normal)
+            {
+                sampleRay.direction = -normalize(samplePoint - intersectPoint);
+            }
+            else
+            {
+                sampleRay.direction = alignSampleVector(samplePoint - intersectPoint, up, normal);
+            }
+            sampleRay.origin = intersectPoint + sampleRay.direction * EPSILON;
+            bounceIntersect = getFirstHit(sampleRay, scene);
+            ambient += raytrace(scene, sampleRay, bounceIntersect, giBounce, giBounce - 1);
+        }
+    }
+    ambient = ambient * (1.0f/numSamples);
+    return ambient;
+}
+
 // Something either in get objectNormal or CalculateLocalColor is causing this program to get a exc bad access. Code works til later on sphere normal
 //calculation where the point handed to the getNormal(point) function is null. 
 glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
@@ -371,7 +443,8 @@ glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
     }
 }
 
-glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Intersection * curIntersect)
+
+glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Intersection & curIntersect, int giBounce, int rCount)
 {
     //Material Properties of current object
     float kAmb = curObject->material->ambient;
@@ -381,16 +454,16 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
     float alpha = calculateAlpha(kRough);
     glm::vec3 curObjectColor;
     //Light Calculation Variables
-    glm::vec3 view = -normalize(ray->direction);
-    glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
+    glm::vec3 view = -normalize(ray.direction);
+    glm::vec3 Pt = ray.origin + curIntersect.t * ray.direction;
     glm::vec3 objNormal = getObjectNormal(curObject, Pt);
     glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(objNormal, 0.f)));
     glm::vec3 color = glm::vec3(0, 0, 0);
     glm::vec3 lColor;
     glm::vec3 H;
     //Secondary Ray Variables
-    Ray * secondaryRay = new Ray();
-    Intersection * secondaryIntersect;
+    Ray secondaryRay = Ray();
+    Intersection secondaryIntersect;
     glm::vec3 shiftedPt;
     glm::vec3 secondaryPt;
     glm::vec3 lVec;
@@ -398,7 +471,14 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
     float lDist;
     float objObjDist;
     //For Point Calculate Light and Shadow Values Using Secondary Rays
-    color = glm::vec3(curObject->color * kAmb);
+    if (scene.gi)
+    {
+        color = calcAmbientGI(kAmb, scene, giBounce, rCount, Pt, worldNormal);
+    }
+    else
+    {
+        color = glm::vec3(curObject->color * kAmb);
+    }
     for (unsigned int l = 0; l < scene.lights.size(); l++)
     {
         inShadow = false;
@@ -406,12 +486,12 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray * ray, Inters
         lVec = glm::normalize(scene.lights[l]->loc - Pt);
         H = glm::normalize(view + lVec);
         shiftedPt = Pt + lVec * EPSILON;
-        secondaryRay = new Ray(shiftedPt, lVec);
+        secondaryRay = Ray(shiftedPt, lVec);
         secondaryIntersect = getFirstHit(secondaryRay, scene);
         //If the light ray encounters intersects another object
-        if (secondaryIntersect->hit)
+        if (secondaryIntersect.hit)
         {
-            secondaryPt = secondaryRay->origin + secondaryIntersect->t * secondaryRay->direction;
+            secondaryPt = secondaryRay.origin + secondaryIntersect.t * secondaryRay.direction;
             lDist = calcDist3D(scene.lights[l]->loc, shiftedPt);
             objObjDist = calcDist3D(shiftedPt, secondaryPt);
             if (objObjDist < lDist)
@@ -441,19 +521,19 @@ glm::vec3 calculateRefractColor()
 }
 
 //TO DO:change both the reflection and refraction calculators to return a new ray instea of ray direction
-glm::vec3 calculateReflectionRay(Ray * rayIn, glm::vec3 normal)
+glm::vec3 calculateReflectionRay(Ray & rayIn, glm::vec3 normal)
 {
-    return normalize(rayIn->direction -  2 * glm::dot(rayIn->direction, normal) * normal);
+    return normalize(rayIn.direction -  2 * glm::dot(rayIn.direction, normal) * normal);
 }
 
-glm::vec3 calculateRefractionRay(Ray * rayIn, glm::vec3 normal, float ior)
+glm::vec3 calculateRefractionRay(Ray & rayIn, glm::vec3 normal, float ior)
 {
     float n1 = 1.0;
     float n2 = ior;
     glm::vec3 negatedNormal;
-    glm::vec3 direction = rayIn->direction;
+    glm::vec3 direction = rayIn.direction;
     //entering
-    if (dot(rayIn->direction, normal) < 0)
+    if (dot(rayIn.direction, normal) < 0)
     {
         return normalize((n1/n2) * (direction - dot(direction, normal) * normal) - normal * (float)sqrt(1 - pow((double)(n1/n2), 2) * (1 - pow((double)dot(-direction, normal) , 2))));
     }
@@ -467,11 +547,11 @@ glm::vec3 calculateRefractionRay(Ray * rayIn, glm::vec3 normal, float ior)
     }
 }
 
-float calculateFresnel(glm::vec3 normal, Ray * ray, glm::vec3 view, float ior)
+float calculateFresnel(glm::vec3 normal, Ray & ray, glm::vec3 view, float ior)
 {
     glm::vec3 negatedNorm;
     float Fo = pow((ior - 1.0f),2)/pow(ior + 1.0f, 2);
-    if (dot(normal, ray->direction) < 0)
+    if (dot(normal, ray.direction) < 0)
     {
         return Fo + (1.0f -Fo) * pow((1- dot(normal, view)), 5);
     }
@@ -484,84 +564,80 @@ float calculateFresnel(glm::vec3 normal, Ray * ray, glm::vec3 view, float ior)
 
 //Function that recursively calculates ***CLEAN CODE: MOVE NORMALS TO INTERSECTION SO NO MORE RECALCULATION****
 //*** CLEAN CODE: MOVE INTERSECTION POINT TO THE INTERSECTION CLASS
-glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCount)
+//*** MOVE ALL REFLECTION CALCULATIONS AND REFRACTION CALCULATIONS TO OWN FUNCTIONS ****
+glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCount, int giBounce)
 {
     glm::vec3 totalColor;
     glm::vec3 localColor;
     glm::vec3 reflectColor;
     glm::vec3 refractColor;
     glm::vec3 color;
-    if (rCount <= 0 ||!curIntersect->hit)
+    if (rCount <= 0 ||!curIntersect.hit)
     {
         return glm::vec3(0, 0, 0);
     }
-    Object * curObject = curIntersect->curObject;
+    Object * curObject = curIntersect.curObject;
     Material * curMaterial = curObject->material;
     glm::vec3 curObjectColor = glm::vec3(curObject->color.x, curObject->color.y, curObject->color.z);
     float filter = curObject->color.w;
     float fresnelReflectance = 0.0f;
     //local
-    color += calculateLocalColor(curIntersect->curObject, scene, ray, curIntersect) * (1 - curMaterial->reflection) * (1 - filter);
+    color += calculateLocalColor(curIntersect.curObject, scene, ray, curIntersect, giBounce, rCount) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
-    Intersection * refIntersect;
+    Intersection refIntersect;
     if (curObject->material->reflection != 0 || (filter > 0 && scene.fresnel))
     {
-        Ray * reflectRay = new Ray();
-        glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
+        Ray reflectRay = Ray();
+        glm::vec3 Pt = ray.origin + curIntersect.t * ray.direction;
         glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
         glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(curObjectNormal, 0.0f)));
         if (scene.fresnel)
         {
-            fresnelReflectance = calculateFresnel(worldNormal, ray, -ray->direction, curObject->material->ior);
+            fresnelReflectance = calculateFresnel(worldNormal, ray, -ray.direction, curObject->material->ior);
         }
-        reflectRay->direction = calculateReflectionRay(ray, worldNormal);
-        reflectRay->origin = Pt + reflectRay->direction * EPSILON;
+        reflectRay.direction = calculateReflectionRay(ray, worldNormal);
+        reflectRay.origin = Pt + reflectRay.direction * EPSILON;
         refIntersect = getFirstHit(reflectRay, scene);
-        color += raytrace(scene, reflectRay, refIntersect, rCount - 1) * curObjectColor * (curObject->material->reflection * (1 - filter)  + filter * fresnelReflectance);
-        delete reflectRay;
+        color += raytrace(scene, reflectRay, refIntersect, rCount - 1, giBounce) * curObjectColor * (curObject->material->reflection * (1 - filter)  + filter * fresnelReflectance);
     }
     //refraction calculations
-    //REFRACTIONS BROKE AFTER TRANSFORMS WERE ADDED BUT DONT KNOW WHERE THE BUG IS
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (filter != 0)
     {
-        Ray * refractRay = new Ray();
-        glm::vec3 Pt = ray->origin + curIntersect->t * ray->direction;
+        Ray refractRay = Ray();
+        glm::vec3 Pt = ray.origin + curIntersect.t * ray.direction;
         glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
         glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(curObjectNormal, 0.0f)));
-        refractRay->direction = calculateRefractionRay(ray, worldNormal, curObject->material->ior);
-        refractRay->origin = Pt + refractRay->direction * EPSILON;
+        refractRay.direction = calculateRefractionRay(ray, worldNormal, curObject->material->ior);
+        refractRay.origin = Pt + refractRay.direction * EPSILON;
         refIntersect = getFirstHit(refractRay, scene);
         //If refraction doesnt intersect anything return black
-        if (refIntersect->hit == false)
+        if (refIntersect.hit == false)
         {
-            delete refractRay;
             return glm::vec3(0, 0, 0);
         }
         //Checks if beers law is true.
         glm::vec3 attenuation;
         if (scene.beers == true)
         {
-            glm::vec3 refPt = refractRay->origin + refIntersect->t * refractRay->direction;
+            glm::vec3 refPt = refractRay.origin + refIntersect.t * refractRay.direction;
             float rDist = calcDist3D(Pt, refPt);
-            glm::vec3 absorb = glm::vec3(1.0f - refIntersect->curObject->color) * (0.15f) * -rDist;
+            glm::vec3 absorb = glm::vec3(1.0f - refIntersect.curObject->color) * (0.15f) * -rDist;
             attenuation = glm::vec3( exp(absorb.x), exp(absorb.y), exp(absorb.z));
         }
-        if (dot(ray->direction, curObjectNormal) < 0 && scene.beers == false)
+        if (dot(ray.direction, curObjectNormal) < 0 && scene.beers == false)
         {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * curObjectColor * (filter * (1 - fresnelReflectance));
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * curObjectColor * (filter * (1 - fresnelReflectance));
         }
-        //entering w/ beers ***COLOR BECOMES WHITE ****
-        else if (dot(ray->direction, curObjectNormal) < 0 && scene.beers == true)
+        //entering w/ beers
+        else if (dot(ray.direction, curObjectNormal) < 0 && scene.beers == true)
         {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * attenuation * (filter * (1 - fresnelReflectance));
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * attenuation * (filter * (1 - fresnelReflectance));
         }
         //exiting
         else
         {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1) * (filter * (1 - fresnelReflectance));
+            color += raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * (filter * (1 - fresnelReflectance));
         }
-        delete refractRay;
     }
     return color;
 }
@@ -569,12 +645,12 @@ glm::vec3 raytrace(Scene scene, Ray * ray, Intersection * curIntersect, int rCou
 glm::vec3 getColor(Scene scene, int width, int height, int pX, int pY)
 {
     glm::vec3 color = glm::vec3(0, 0, 0);
-    Intersection * curIntersect;
+    Intersection curIntersect;
     for (int m = 0; m < scene.superSample; m++) {
         for (int n = 0; n < scene.superSample; n++) {
-            Ray * camRay = Ray::getCamRay(scene, width, height, pX, pY, m, n);
+            Ray camRay = Ray::getCamRay(scene, width, height, pX, pY, m, n);
             curIntersect = getFirstHit(camRay, scene);
-            color += raytrace(scene, camRay, curIntersect, MAXRECURSE);
+            color += raytrace(scene, camRay, curIntersect, MAXRECURSE, GIBOUNCE);
         }
     }
     color /= (scene.superSample * scene.superSample);
@@ -610,6 +686,36 @@ void cleanUp()
     
 }
 
+bool StringBeginsWith(const std::string & s, const std::string & prefix, std::string & remainder)
+{
+    if (s.size() < prefix.size())
+    {
+        return false;
+    }
+    
+    if (s.substr(0, prefix.size()) == prefix)
+    {
+        remainder = s.substr(prefix.size());
+        return true;
+    }
+    
+    return false;
+}
+
+std::vector<string> StringExplode(const std::string & str, const char delimiter)
+{
+    std::vector<string> words;
+    std::istringstream stream(str);
+    
+    std::string word;
+    while (std::getline(stream, word, delimiter))
+    {
+        words.push_back(word);
+    }
+    
+    return words;
+}
+
 int main(int argc, char *argv[])
 {
     // Main Variables
@@ -623,7 +729,7 @@ int main(int argc, char *argv[])
     int mode;
     string argString;
     Scene scene;
-    Ray * ray;
+    Ray ray;
     //Check to see if command line args are correct
     //application->initArgs(argc, argv);
     mode = checkMode(argv[1]);
@@ -669,12 +775,16 @@ int main(int argc, char *argv[])
         //ray = printPixelRay(scene.cam, wWidth, wHeight, pixelX, pixelY, argv[2]);
         getFirstHit(ray, scene);
     }
+    //Main Executed Function That Renders The Scene
     if (mode == RENDER)
     {
         ss = getString(argv[2]);
         wWidth =  atoi(argv[3]);
         wHeight = atoi(argv[4]);
         string superSample = "=";
+        string globalIllumination = "-gi";
+        std::vector<int> sampleCounts;
+        std::string remainder;
         scene.superSample = 1;
         for (int i = 0; i < argc; i++)
         {
@@ -695,6 +805,26 @@ int main(int argc, char *argv[])
             {
                 scene.sds = true;
             }
+            else if (argString.find(globalIllumination) != std::string::npos)
+            {
+                if (StringBeginsWith(argString, "-gi", remainder))
+                {
+                    scene.gi = true;
+                }
+                if (StringBeginsWith(argString, "-gi_samples=", remainder))
+                {
+                    std::vector<string> words = StringExplode(remainder, ',');
+                    for (const std::string & s : words)
+                    {
+                        sampleCounts.push_back(std::stoi(s));
+                    }
+                    scene.giSampleCounts = sampleCounts;
+                }
+                if (StringBeginsWith(argString, "-gi_bounces=", remainder))
+                {
+                    scene.giBounces = stoi(remainder);
+                }
+            }
             else if ((argString.find(superSample) != std::string::npos))
             {
                 scene.superSample = stoi(argString.substr(4, string::npos));
@@ -710,8 +840,13 @@ int main(int argc, char *argv[])
             scene.initBBTree();
             renderScene(wWidth, wHeight, scene);
         }
-        //Render Blinn-Phong
-        renderScene(wWidth, wHeight, scene);
+        else
+        {
+            //Render Blinn-Phong
+            renderScene(wWidth, wHeight, scene);
+        }
+        
+        
     }
     cleanUp();
     return 0;

@@ -22,7 +22,7 @@ public:
     void printInfo();
     void printObjectType();
     void printObjectColor();
-    float checkIntersect(const Ray * ray);
+    float checkIntersect(const Ray ray);
     glm::vec3 getNormal();
 };
 

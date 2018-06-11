@@ -33,7 +33,7 @@ void Box::printObjectColor()
     std::cout << "Color: " << color.x << " " << color.y << " " << color.z << std::endl;
 }
 
-float Box::checkIntersect(const Ray * ray)
+float Box::checkIntersect(const Ray ray)
 {
     float smallestMax = std::numeric_limits<float>::max();
     float largestMin = -(std::numeric_limits<float>::max());
@@ -60,12 +60,12 @@ float Box::checkIntersect(const Ray * ray)
     //        }
     //    }
     
-    float tXMin = (min.x - ray->origin.x) / ray->direction.x;
-    float tXMax = (max.x - ray->origin.x) / ray->direction.x;
-    float tYMin = (min.y - ray->origin.y) / ray->direction.y;
-    float tYMax = (max.y - ray->origin.y) / ray->direction.y;
-    float tZMin = (min.z - ray->origin.z) / ray->direction.z;
-    float tZMax = (max.z - ray->origin.z) / ray->direction.z;
+    float tXMin = (min.x - ray.origin.x) / ray.direction.x;
+    float tXMax = (max.x - ray.origin.x) / ray.direction.x;
+    float tYMin = (min.y - ray.origin.y) / ray.direction.y;
+    float tYMax = (max.y - ray.origin.y) / ray.direction.y;
+    float tZMin = (min.z - ray.origin.z) / ray.direction.z;
+    float tZMax = (max.z - ray.origin.z) / ray.direction.z;
     
     if (tXMin > tXMax)
     {

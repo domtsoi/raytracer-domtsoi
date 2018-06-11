@@ -52,7 +52,6 @@ void BBNode::sortObjects(std::vector<Object *> objects, int axis)
     }
 }
 
-
 void BBNode::recursiveTreeBuild(std::vector<Object *> objects, int axis)
 {
     if (objects.size() <= 1)

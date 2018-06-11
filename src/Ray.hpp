@@ -21,6 +21,6 @@ public:
     void printRay();
     Ray();
     Ray(glm::vec3 origin, glm::vec3 direction);
-    static Ray * getCamRay(Scene scene, int width, int height, int pX, int pY, int m, int n);
+    static Ray getCamRay(Scene scene, int width, int height, int pX, int pY, int m, int n);
 };
 #endif /* Ray_hpp */
