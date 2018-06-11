@@ -30,6 +30,16 @@
 #define GIBOUNCE 2
 #define PI 3.14159265358979323846
 
+/*
+ PROJECT TO DO LIST:
+ REFLECTIONS: WORKING
+ REFRACTIONS: WORKING
+ SPACIAL DATA STRUCTURE: BROKEN (TAKES TOO LONG)
+ GLOBAL ILLUMINATION: BROKEN (WEIRD LINES AND NO COLOR BLEEDING)
+ CODE CLEANING: UNFINISHED-MOVE STUFF TO WHERE IT SAYS ABOVE FUNCTION DECLARATION
+ POTENTIALLY MOVE EVERYTHING TO EXTERNAL APPLICATION CLASS SO MAIN IS CLEAN
+*/
+
 using namespace std;
 //Global Variables
 Camera * camera;
@@ -351,7 +361,7 @@ float calcSpecular(float kSpec, glm::vec3 H, glm::vec3 normal, float alpha)
     return kSpec * pow(clamped, alpha);
 }
 
-glm::vec3 generateCosineWeightedPoint(int u, int v)
+glm::vec3 generateCosineWeightedPoint(float u, float v)
 {
     float radial = sqrt(u);
     float theta = 2.0f * M_PI * v;
@@ -363,14 +373,14 @@ glm::vec3 generateCosineWeightedPoint(int u, int v)
 glm::vec3 alignSampleVector(glm::vec3 sample, glm::vec3 up, glm::vec3 normal)
 {
     float angle = acosf(dot(up, normal));
-    glm::vec3 axis = cross(up, normal);
+    glm::vec3 axis = glm::cross(up, normal);
     glm::mat4 alignMatrix = glm::rotate(angle, axis);
-    return glm::vec3(alignMatrix * glm::vec4(sample, 0.0f));
+    return glm::vec3(alignMatrix * glm::vec4(sample, 1.0f));
 }
 
 glm::vec3 calcAmbientGI(float kAmb, Scene scene, int giBounce, int recurseCount, glm::vec3 intersectPoint, glm::vec3 normal)
 {
-    glm::vec3 ambient = glm::vec3(0, 0, 0);
+    glm::vec3 ambient = glm::vec3(0.0f, 0.0f, 0.0f);
     int numSamples;
     int gridMax;
     if (giBounce == 0)
@@ -380,16 +390,16 @@ glm::vec3 calcAmbientGI(float kAmb, Scene scene, int giBounce, int recurseCount,
     else if (giBounce == 1)
     {
         numSamples = 16;
-        gridMax = sqrt(numSamples);
+        gridMax = (int)sqrt(numSamples);
     }
     else
     {
         numSamples = 64;
-        gridMax = sqrt(numSamples);
+        gridMax = (int)sqrt(numSamples);
     }
     glm::vec3 samplePoint;
     float u, v;
-    glm::vec3 up = glm::vec3(0, 0, 1);
+    glm::vec3 up = glm::vec3(0.0f, 0.0f, 1.0f);
     Ray sampleRay;
     Intersection bounceIntersect;
     for (int i = 0; i < gridMax; i++)
@@ -446,7 +456,7 @@ glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
 }
 
 
-glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Intersection & curIntersect, int giBounce, int rCount)
+glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Intersection & curIntersect, int rCount, int giBounce)
 {
     //Material Properties of current object
     float kAmb = curObject->material->ambient;
@@ -475,7 +485,7 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Inters
     //For Point Calculate Light and Shadow Values Using Secondary Rays
     if (scene.gi)
     {
-        color = calcAmbientGI(kAmb, scene, giBounce, rCount, Pt, worldNormal);
+        color += calcAmbientGI(kAmb, scene, giBounce, rCount, Pt, worldNormal);
     }
     else
     {
@@ -576,7 +586,7 @@ glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCou
     glm::vec3 color;
     if (rCount <= 0 ||!curIntersect.hit)
     {
-        return glm::vec3(0, 0, 0);
+        return glm::vec3(0.f, 0.f, 0.f);
     }
     Object * curObject = curIntersect.curObject;
     Material * curMaterial = curObject->material;
@@ -584,7 +594,7 @@ glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCou
     float filter = curObject->color.w;
     float fresnelReflectance = 0.0f;
     //local
-    color += calculateLocalColor(curIntersect.curObject, scene, ray, curIntersect, giBounce, rCount) * (1 - curMaterial->reflection) * (1 - filter);
+    color += calculateLocalColor(curIntersect.curObject, scene, ray, curIntersect, rCount, giBounce) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
     Intersection refIntersect;
     if (curObject->material->reflection != 0 || (filter > 0 && scene.fresnel))
@@ -615,7 +625,7 @@ glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCou
         //If refraction doesnt intersect anything return black
         if (refIntersect.hit == false)
         {
-            return glm::vec3(0, 0, 0);
+            return glm::vec3(0.f, 0.f, 0.f);
         }
         //Checks if beers law is true.
         glm::vec3 attenuation;
@@ -646,7 +656,7 @@ glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCou
 
 glm::vec3 getColor(Scene scene, int width, int height, int pX, int pY)
 {
-    glm::vec3 color = glm::vec3(0, 0, 0);
+    glm::vec3 color = glm::vec3(0.f, 0.f, 0.f);
     Intersection curIntersect;
     for (int m = 0; m < scene.superSample; m++) {
         for (int n = 0; n < scene.superSample; n++) {
