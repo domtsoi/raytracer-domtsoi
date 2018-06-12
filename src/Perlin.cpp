@@ -15,6 +15,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #define MAXFRAMES 300
+const double FEATURE_SIZE = 24.0;
 
 Intersection getFirstHit(Ray & ray, Scene scene);
 
@@ -27,9 +28,7 @@ void Perlin::renderScenePerlin(int width, int height, Scene scene)
     std::string fileBegin = "output";
     std::string fileEnd = ".png";
     std::vector<std::string> animationStills;
-    OSN::Noise<3> noise;
-    double * noiseData = new double [width * height * MAXFRAMES];
-    int zAnimate = 0;
+    double nZAnimate = 0;
     for (int i = 0; i < MAXFRAMES; i++)
     {
         animationStills.push_back(fileBegin + std::to_string(i) + fileEnd);
@@ -40,23 +39,25 @@ void Perlin::renderScenePerlin(int width, int height, Scene scene)
         {
             for (int y = 0; y < height; y++)
             {
-                noiseData = noise.eval(x, y, zAnimate);
-                color = getPerlinSample(scene, width, height, x, y);
+                color = getPerlinSample(scene, width, height, x, y, nZAnimate);
                 outImage->setPixel(x, y, (unsigned char)color.x, (unsigned char)color.y, (unsigned char)color.z);
             }
         }
         outImage->writeToFile(animationStills[f]);
-        zAnimate++;
+        nZAnimate++;
         //APPLY SHIFT IN PERLIN FUNCTION IN Z
     }
 }
 
-glm::vec3 Perlin::getPerlinSample(Scene scene, int width, int height, int pX, int pY)
+glm::vec3 Perlin::getPerlinSample(Scene scene, int width, int height, int pX, int pY, int zAnimate)
 {
     glm::vec3 color = glm::vec3(0.f, 0.f, 0.f);
     Intersection curIntersect;
+    OSN::Noise<3> noise;
+    double noiseData;
     for (int m = 0; m < scene.superSample; m++) {
         for (int n = 0; n < scene.superSample; n++) {
+            noiseData = noise.eval(pX, pY, zAnimate);
             Ray camRay = Ray::getCamRay(scene, width, height, pX, pY, m, n);
             curIntersect = getFirstHit(camRay, scene);
             //color += perlinNoise3D();

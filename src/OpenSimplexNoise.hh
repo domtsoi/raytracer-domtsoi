@@ -24,6 +24,7 @@
 #define OPENSIMPLEXNOISE_HH
 
 #include <cmath>
+#include <algorithm>
 
 #if __cplusplus < 201103L
   #pragma message("Info: Your compiler does not claim C++11 support. Some features may be unavailable.")
