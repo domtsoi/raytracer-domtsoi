@@ -56,7 +56,7 @@ void AABB::applyTransform(glm::mat4 modelMatrix)
     
     for (int i = 0; i < verts.size(); i++)
     {
-        verts[i] = glm::vec3(modelMatrix * glm::vec4(verts[i], 1));
+        verts[i] = glm::vec3(modelMatrix * glm::vec4(verts[i], 1.0f));
     }
     
     Reset(verts[0]);

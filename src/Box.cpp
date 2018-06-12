@@ -104,27 +104,27 @@ glm::vec3 Box::getNormal(glm::vec3 point)
     glm::vec3 normal = glm::vec3(0, 0, 0);
     if (glm::epsilonEqual(point.x, min.x, EPSILON))
     {
-        normal = glm::vec3(-1, 0, 0);
+        normal = glm::vec3(-1.f, 0.f, 0.f);
     }
     else if (glm::epsilonEqual(point.x, max.x, EPSILON))
     {
-        normal = glm::vec3(1, 0, 0);
+        normal = glm::vec3(1.f, 0.f, 0.f);
     }
     else if (glm::epsilonEqual(point.y, min.y, EPSILON))
     {
-        normal = glm::vec3(0, -1, 0);
+        normal = glm::vec3(0.f, -1.f, 0.f);
     }
     else if (glm::epsilonEqual(point.y, max.y, EPSILON))
     {
-        normal = glm::vec3(0, 1, 0);
+        normal = glm::vec3(0.f, 1.f, 0.f);
     }
     else if (glm::epsilonEqual(point.z, min.z, EPSILON))
     {
-        normal = glm::vec3(0, 0, -1);
+        normal = glm::vec3(0.f, 0.f, -1.f);
     }
     else if (glm::epsilonEqual(point.z, max.z, EPSILON))
     {
-        normal = glm::vec3(0, 0, 1);
+        normal = glm::vec3(0.f, 0.f, 1.f);
     }
 //    if (normal == glm::vec3(0, 0, 0))
 //    {

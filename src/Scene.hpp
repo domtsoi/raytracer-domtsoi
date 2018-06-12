@@ -31,6 +31,7 @@ public:
     bool beers = false;
     bool sds = false;
     bool gi = false;
+    bool perlin = false;
     int giBounces = 0;
     int superSample = 1;
     void initBBTree();

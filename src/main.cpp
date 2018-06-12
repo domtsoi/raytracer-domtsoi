@@ -19,6 +19,7 @@
 #include "Material.hpp"
 #include "Object.hpp"
 #include "BoundingBoxNode.hpp"
+#include "Perlin.hpp"
 
 //#include "Application.hpp"
 #define RAYCAST  1
@@ -32,10 +33,12 @@
 
 /*
  PROJECT TO DO LIST:
+ PARSING: MOSTLY WORKING WITH SOME BUGS WITH STOI() FUNCTION FAILING IN SOME CASES
+ SHAPES: MOSTLY WORKING (BOX REFLECTIONS/REFRACTIONS STILL BUGGY, NORMALS COULD BE FLIPPED SOMEHOW)
  REFLECTIONS: WORKING
  REFRACTIONS: WORKING
  SPACIAL DATA STRUCTURE: BROKEN (TAKES TOO LONG)
- GLOBAL ILLUMINATION: BROKEN (WEIRD LINES AND NO COLOR BLEEDING)
+ GLOBAL ILLUMINATION: WORKING (IMPLEMENTED FOR DIFFUSE AND AMBIENT)
  CODE CLEANING: UNFINISHED-MOVE STUFF TO WHERE IT SAYS ABOVE FUNCTION DECLARATION
  POTENTIALLY MOVE EVERYTHING TO EXTERNAL APPLICATION CLASS SO MAIN IS CLEAN
 */
@@ -43,7 +46,6 @@
 using namespace std;
 //Global Variables
 Camera * camera;
-Intersection * intersect;
 const static float EPSILON = 0.001f;
 
 glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCount, int giBounce);
@@ -431,7 +433,6 @@ glm::vec3 calcAmbientGI(float kAmb, Scene scene, int giBounce, int recurseCount,
     return ambient;
 }
 
-// Something either in get objectNormal or CalculateLocalColor is causing this program to get a exc bad access. Code works til later on sphere normal
 //calculation where the point handed to the getNormal(point) function is null. 
 glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
 {
@@ -447,7 +448,7 @@ glm::vec3 getObjectNormal(Object * curObject, glm::vec3 point)
     else if (curObject->type == "Box")
     {
         glm::vec3 newPoint = glm::vec3(curObject->inverseModelMat * glm::vec4(point, 1.0f));
-        return static_cast<Box*>(curObject)->getNormal(newPoint);
+        return (static_cast<Box*>(curObject)->getNormal(newPoint));
     }
     else
     {
@@ -513,9 +514,8 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Inters
         }
         if (!inShadow)
         {
-            curObjectColor = glm::vec3(curObject->color.x, curObject->color.y, curObject->color.z);
-            color += (curObjectColor * calcDiffuse(kDiff, worldNormal, lVec) * lColor);
-            color += (curObjectColor * calcSpecular(kSpec, H, worldNormal, alpha) * lColor);
+            color += (glm::vec3(curObject->color) * calcDiffuse(kDiff, worldNormal, lVec) * lColor);
+            color += (glm::vec3(curObject->color) * calcSpecular(kSpec, H, worldNormal, alpha) * lColor);
         }
     }
     return color;
@@ -798,6 +798,7 @@ int main(int argc, char *argv[])
         std::vector<int> sampleCounts;
         std::string remainder;
         scene.superSample = 1;
+        //Initialize All Flags
         for (int i = 0; i < argc; i++)
         {
             argString = argv[i];
@@ -816,6 +817,10 @@ int main(int argc, char *argv[])
             else if (argString == "-sds")
             {
                 scene.sds = true;
+            }
+            else if (argString == "-perlin")
+            {
+                scene.perlin = true;
             }
             else if (argString.find(globalIllumination) != std::string::npos)
             {
@@ -841,24 +846,31 @@ int main(int argc, char *argv[])
             {
                 scene.superSample = stoi(argString.substr(4, string::npos));
             }
+            
         }
         Parse::parseFile(ss, scene);
         if (scene.altbrdf)
         {
             //render Cook-Torrance (EXTRA CREDIT)
         }
-        if (scene.sds)
+        else if (scene.perlin)
         {
-            scene.initBBTree();
-            renderScene(wWidth, wHeight, scene);
+            Perlin p;
+            p.renderScenePerlin(wWidth, wHeight, scene);
         }
         else
         {
-            //Render Blinn-Phong
-            renderScene(wWidth, wHeight, scene);
+            if (scene.sds)
+            {
+                scene.initBBTree();
+                renderScene(wWidth, wHeight, scene);
+            }
+            else
+            {
+                //Render Blinn-Phong
+                renderScene(wWidth, wHeight, scene);
+            }
         }
-        
-        
     }
     cleanUp();
     return 0;

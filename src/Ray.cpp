@@ -36,21 +36,16 @@ Ray Ray::getCamRay(Scene scene, int width, int height, int pX, int pY, int m, in
     Ray ray = Ray();
     Camera * camera = scene.cam;
     float Us, Vs, Ws;
-    glm::vec3 lookat = camera->lookAt;
-    glm::vec3 location = camera->loc;
     glm::vec3 u = camera->right;
     glm::vec3 v = camera->up;
-    glm::vec3 l = glm::vec3(normalize(lookat - location));
+    glm::vec3 l = glm::vec3(normalize(camera->lookAt - camera->loc));
     glm::vec3 w = -l;
-    glm::vec3 direction = glm::vec3(0, 0, 0);
-    glm::vec3 nDirection = glm::vec3(0, 0, 0);
     ray.origin = camera->loc;
     Us = (-1/2.0) + ((pX * scene.superSample + m + 0.5) / (width * scene.superSample));
     Vs = (-1/2.0) + ((pY * scene.superSample + n + 0.5) / (height * scene.superSample));
-    //std::cout << "Us: " << Us << " Vs: " << Vs << std::endl;
     Ws = -1;
-    direction = (Us * u + Vs *v + Ws * w);
-    nDirection = normalize(direction);
+    glm::vec3 direction = (Us * u + Vs *v + Ws * w);
+    glm::vec3 nDirection = normalize(direction);
     ray.direction = nDirection;
     return ray;
 }
