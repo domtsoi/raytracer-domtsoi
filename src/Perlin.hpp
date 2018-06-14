@@ -16,7 +16,7 @@ class Perlin
 {
 public:
     void renderScenePerlin(int width, int height, Scene scene);
-    glm::vec3 getPerlinSample(Scene scene, int width, int height, int pX, int pY, int zAnimate);
+    glm::vec3 getPerlinSample(Scene scene, int width, int height, int pX, int pY, float zAnimate, float colAnimate);
 };
 
 #endif /* Perlin_hpp */

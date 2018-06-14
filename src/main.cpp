@@ -475,7 +475,7 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Inters
     glm::vec3 lColor;
     glm::vec3 H;
     //Secondary Ray Variables
-    Ray secondaryRay = Ray();
+    Ray shadowFeeler = Ray();
     Intersection secondaryIntersect;
     glm::vec3 shiftedPt;
     glm::vec3 secondaryPt;
@@ -499,12 +499,12 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Inters
         lVec = glm::normalize(scene.lights[l]->loc - Pt);
         H = glm::normalize(view + lVec);
         shiftedPt = Pt + lVec * EPSILON;
-        secondaryRay = Ray(shiftedPt, lVec);
-        secondaryIntersect = getFirstHit(secondaryRay, scene);
+        shadowFeeler = Ray(shiftedPt, lVec);
+        secondaryIntersect = getFirstHit(shadowFeeler, scene);
         //If the light ray encounters intersects another object
         if (secondaryIntersect.hit)
         {
-            secondaryPt = secondaryRay.origin + secondaryIntersect.t * secondaryRay.direction;
+            secondaryPt = shadowFeeler.origin + secondaryIntersect.t * shadowFeeler.direction;
             lDist = calcDist3D(scene.lights[l]->loc, shiftedPt);
             objObjDist = calcDist3D(shiftedPt, secondaryPt);
             if (objObjDist < lDist)
@@ -519,17 +519,6 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Inters
         }
     }
     return color;
-}
-
-//Eventually move reflect and refract code here
-glm::vec3 calculateReflectColor()
-{
-    
-}
-
-glm::vec3 calculateRefractColor()
-{
-    
 }
 
 //TO DO:change both the reflection and refraction calculators to return a new ray instea of ray direction
@@ -574,6 +563,64 @@ float calculateFresnel(glm::vec3 normal, Ray & ray, glm::vec3 view, float ior)
     }
 }
 
+//Eventually move reflect and refract code here
+glm::vec3 calculateReflectColor(Object * curObject, Scene scene, Intersection & curIntersect, Ray & ray, float filter , float  & fresnelReflectance, int giBounce, int rCount)
+{
+    Intersection refIntersect;
+    Ray reflectRay = Ray();
+    glm::vec3 Pt = ray.origin + curIntersect.t * ray.direction;
+    glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
+    glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(curObjectNormal, 0.0f)));
+    if (scene.fresnel)
+    {
+        fresnelReflectance = calculateFresnel(worldNormal, ray, -ray.direction, curObject->material->ior);
+    }
+    reflectRay.direction = calculateReflectionRay(ray, worldNormal);
+    reflectRay.origin = Pt + reflectRay.direction * EPSILON;
+    refIntersect = getFirstHit(reflectRay, scene);
+    return raytrace(scene, reflectRay, refIntersect, rCount - 1, giBounce) * glm::vec3(curObject->color) * (curObject->material->reflection * (1 - filter)  + filter * fresnelReflectance);
+}
+
+glm::vec3 calculateRefractColor(Object * curObject, Scene scene, Intersection & curIntersect, Ray & ray, float filter, float  & fresnelReflectance, int giBounce, int rCount)
+{
+    Intersection refIntersect;
+    Ray refractRay = Ray();
+    glm::vec3 Pt = ray.origin + curIntersect.t * ray.direction;
+    glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
+    glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(curObjectNormal, 0.0f)));
+    refractRay.direction = calculateRefractionRay(ray, worldNormal, curObject->material->ior);
+    refractRay.origin = Pt + refractRay.direction * EPSILON;
+    refIntersect = getFirstHit(refractRay, scene);
+    //If refraction doesnt intersect anything return black
+    if (refIntersect.hit == false)
+    {
+        return glm::vec3(0.f, 0.f, 0.f);
+    }
+    //Checks if beers law is true.
+    glm::vec3 attenuation;
+    if (scene.beers == true)
+    {
+        glm::vec3 refPt = refractRay.origin + refIntersect.t * refractRay.direction;
+        float rDist = calcDist3D(Pt, refPt);
+        glm::vec3 absorb = glm::vec3(1.0f - refIntersect.curObject->color) * (0.15f) * -rDist;
+        attenuation = glm::vec3( exp(absorb.x), exp(absorb.y), exp(absorb.z));
+    }
+    if (dot(ray.direction, curObjectNormal) < 0 && scene.beers == false)
+    {
+        return raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * glm::vec3(curObject->color) * (filter * (1 - fresnelReflectance));
+    }
+    //entering w/ beers
+    else if (dot(ray.direction, curObjectNormal) < 0 && scene.beers == true)
+    {
+        return raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * attenuation * (filter * (1 - fresnelReflectance));
+    }
+    //exiting
+    else
+    {
+        return raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * (filter * (1 - fresnelReflectance));
+    }
+}
+
 //Function that recursively calculates ***CLEAN CODE: MOVE NORMALS TO INTERSECTION SO NO MORE RECALCULATION****
 //*** CLEAN CODE: MOVE INTERSECTION POINT TO THE INTERSECTION CLASS
 //*** MOVE ALL REFLECTION CALCULATIONS AND REFRACTION CALCULATIONS TO OWN FUNCTIONS ****
@@ -590,66 +637,19 @@ glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCou
     }
     Object * curObject = curIntersect.curObject;
     Material * curMaterial = curObject->material;
-    glm::vec3 curObjectColor = glm::vec3(curObject->color.x, curObject->color.y, curObject->color.z);
     float filter = curObject->color.w;
     float fresnelReflectance = 0.0f;
     //local
     color += calculateLocalColor(curIntersect.curObject, scene, ray, curIntersect, rCount, giBounce) * (1 - curMaterial->reflection) * (1 - filter);
     //reflection calculations
-    Intersection refIntersect;
     if (curObject->material->reflection != 0 || (filter > 0 && scene.fresnel))
     {
-        Ray reflectRay = Ray();
-        glm::vec3 Pt = ray.origin + curIntersect.t * ray.direction;
-        glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
-        glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(curObjectNormal, 0.0f)));
-        if (scene.fresnel)
-        {
-            fresnelReflectance = calculateFresnel(worldNormal, ray, -ray.direction, curObject->material->ior);
-        }
-        reflectRay.direction = calculateReflectionRay(ray, worldNormal);
-        reflectRay.origin = Pt + reflectRay.direction * EPSILON;
-        refIntersect = getFirstHit(reflectRay, scene);
-        color += raytrace(scene, reflectRay, refIntersect, rCount - 1, giBounce) * curObjectColor * (curObject->material->reflection * (1 - filter)  + filter * fresnelReflectance);
+        color += calculateReflectColor(curObject, scene, curIntersect, ray, filter, fresnelReflectance, giBounce, rCount);
     }
     //refraction calculations
     if (filter != 0)
     {
-        Ray refractRay = Ray();
-        glm::vec3 Pt = ray.origin + curIntersect.t * ray.direction;
-        glm::vec3 curObjectNormal = getObjectNormal(curObject, Pt);
-        glm::vec3 worldNormal = normalize(glm::vec3(curObject->normalMat * glm::vec4(curObjectNormal, 0.0f)));
-        refractRay.direction = calculateRefractionRay(ray, worldNormal, curObject->material->ior);
-        refractRay.origin = Pt + refractRay.direction * EPSILON;
-        refIntersect = getFirstHit(refractRay, scene);
-        //If refraction doesnt intersect anything return black
-        if (refIntersect.hit == false)
-        {
-            return glm::vec3(0.f, 0.f, 0.f);
-        }
-        //Checks if beers law is true.
-        glm::vec3 attenuation;
-        if (scene.beers == true)
-        {
-            glm::vec3 refPt = refractRay.origin + refIntersect.t * refractRay.direction;
-            float rDist = calcDist3D(Pt, refPt);
-            glm::vec3 absorb = glm::vec3(1.0f - refIntersect.curObject->color) * (0.15f) * -rDist;
-            attenuation = glm::vec3( exp(absorb.x), exp(absorb.y), exp(absorb.z));
-        }
-        if (dot(ray.direction, curObjectNormal) < 0 && scene.beers == false)
-        {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * curObjectColor * (filter * (1 - fresnelReflectance));
-        }
-        //entering w/ beers
-        else if (dot(ray.direction, curObjectNormal) < 0 && scene.beers == true)
-        {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * attenuation * (filter * (1 - fresnelReflectance));
-        }
-        //exiting
-        else
-        {
-            color += raytrace(scene, refractRay, refIntersect, rCount - 1, giBounce) * (filter * (1 - fresnelReflectance));
-        }
+        color += calculateRefractColor(curObject, scene, curIntersect, ray, filter, fresnelReflectance, giBounce, rCount);
     }
     return color;
 }
