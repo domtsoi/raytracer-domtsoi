@@ -4,8 +4,6 @@
 
 using namespace std;
 
-//*** CHANGE POINTERS TO REFERENCES LATER !!!!!!!!!!!!***************
-
 //Parses the file stream of the given .pov file
 void Parse::parseFile(std::stringstream & s, Scene & scene)
 {
@@ -14,7 +12,6 @@ void Parse::parseFile(std::stringstream & s, Scene & scene)
     //loop through substrings in stringstream
     while (s >> temp)
     {
-        //cout << "File Temp String: " << temp << endl;
         //checks for comment lines then ignores them.
         if (temp[0] == '/' && temp[1] == '/')
         {
@@ -144,13 +141,10 @@ Sphere * Parse::parseSphere(std::stringstream & s)
     s.ignore(numeric_limits<streamsize>::max(), '{');
     sphere->center = parseVector(s);
     s >> temp;
-    //cout << "parseSphere temp1: " << temp << endl;
     s >> temp;
-    //cout << "parseSphere temp2: " << temp << endl;
     sphere->radius = stof(temp);
     while (s >> temp)
     {
-        //cout << "cur sphere temp: " << temp << endl;
         if (temp == "pigment")
         {
             sphere->color = parsePigment(s);
@@ -170,8 +164,15 @@ Sphere * Parse::parseSphere(std::stringstream & s)
         {
             Transform * t = new Transform();
             t->quantity = parseVector(s);
-            t->type = "scale";
-            transforms.push_back(t);
+            if ((t->quantity.x == t->quantity.y) && (t->quantity.x == t->quantity.z))
+            {
+                sphere->radius = sphere->radius * t->quantity.x;
+            }
+            else
+            {
+                t->type = "scale";
+                transforms.push_back(t);
+            }
         }
         else if (temp == "rotate")
         {
@@ -188,7 +189,6 @@ Sphere * Parse::parseSphere(std::stringstream & s)
             sphere->inverseModelMat = inverseModelMat;
             normalMat = glm::transpose(inverseModelMat);
             sphere->normalMat = normalMat;
-            //std::cout << "sphere mat: " << glm::to_string(normalMat) << std::endl;
             sphere->type = "Sphere";
             return sphere;
         }
@@ -330,7 +330,6 @@ Triangle * Parse::parseTriangle(std::stringstream & s)
             triangle->inverseModelMat = inverseModelMat;
             normalMat = glm::transpose(inverseModelMat);
             triangle->normalMat = normalMat;
-            //std::cout << glm::to_string(normalMat) << std::endl;
             triangle->type = "Triangle";
             return triangle;
         }
@@ -399,6 +398,7 @@ Box * Parse::parseBox(std::stringstream &s)
             inverseModelMat = glm::inverse(modelMat);
             box->inverseModelMat = inverseModelMat;
             normalMat = glm::transpose(inverseModelMat);
+            box->normalMat = normalMat;
             box->type = "Box";
             return box;
         }
@@ -413,6 +413,7 @@ Box * Parse::parseBox(std::stringstream &s)
     inverseModelMat = glm::inverse(modelMat);
     box->inverseModelMat = inverseModelMat;
     normalMat = glm::transpose(inverseModelMat);
+    box->normalMat = normalMat;
     box->type = "Box";
     return box;
 }

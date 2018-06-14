@@ -465,7 +465,6 @@ glm::vec3 calculateLocalColor(Object * curObject, Scene scene, Ray & ray, Inters
     float kSpec = curObject->material->specular;
     float kRough = curObject->material->roughness;
     float alpha = calculateAlpha(kRough);
-    glm::vec3 curObjectColor;
     //Light Calculation Variables
     glm::vec3 view = -normalize(ray.direction);
     glm::vec3 Pt = ray.origin + curIntersect.t * ray.direction;
@@ -621,9 +620,9 @@ glm::vec3 calculateRefractColor(Object * curObject, Scene scene, Intersection & 
     }
 }
 
-//Function that recursively calculates ***CLEAN CODE: MOVE NORMALS TO INTERSECTION SO NO MORE RECALCULATION****
+//Function that recursively calculates
+//***CLEAN CODE: MOVE NORMALS TO INTERSECTION SO NO MORE RECALCULATION****
 //*** CLEAN CODE: MOVE INTERSECTION POINT TO THE INTERSECTION CLASS
-//*** MOVE ALL REFLECTION CALCULATIONS AND REFRACTION CALCULATIONS TO OWN FUNCTIONS ****
 glm::vec3 raytrace(Scene scene, Ray & ray, Intersection & curIntersect, int rCount, int giBounce)
 {
     glm::vec3 totalColor;
